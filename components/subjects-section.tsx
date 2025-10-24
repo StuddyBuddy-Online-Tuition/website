@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useInView } from "framer-motion"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calculator, Atom, BookOpen, Globe, Code, Music, Palette, Languages, ChevronRight, Check } from "lucide-react"
@@ -299,8 +299,18 @@ export default function SubjectsSection() {
             key={i}
             className="absolute"
             style={{
-              top: `${Math.random() * 80 + 10}%`,
-              left: `${Math.random() * 80 + 10}%`,
+              ...useMemo(() => {
+                // deterministic seeded random per index
+                let seed = 9000 + i * 101
+                const rand = () => {
+                  seed = (seed * 1664525 + 1013904223) % 4294967296
+                  return seed / 4294967296
+                }
+                return {
+                  top: `${rand() * 80 + 10}%`,
+                  left: `${rand() * 80 + 10}%`,
+                }
+              }, [i]),
               width: `${item.size}px`,
               height: `${item.size}px`,
             }}

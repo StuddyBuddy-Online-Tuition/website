@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
-import Image from "next/image"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { motion, useAnimation, useInView } from "framer-motion"
-import { Star, ArrowRight, Sparkles, BookOpen, Brain } from "lucide-react"
-import confetti from "canvas-confetti"
+import { Star, ArrowRight, Sparkles, BookOpen, Brain, Calculator, Atom, Languages } from "lucide-react"
+// Load confetti dynamically on client to avoid SSR/type issues
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -16,6 +15,39 @@ export default function HeroSection() {
   const controls = useAnimation()
   const ref = useRef(null)
   const inView = useInView(ref)
+  const [confettiFn, setConfettiFn] = useState<null | ((opts?: any) => void)>(null)
+
+  useEffect(() => {
+    let mounted = true
+    import("canvas-confetti")
+      .then((m) => {
+        if (!mounted) return
+        setConfettiFn(() => m.default as any)
+      })
+      .catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  // Deterministic seeded random to avoid SSR/CSR hydration mismatches
+  const circles = useMemo(() => {
+    let seed = 1337
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) % 4294967296
+      return seed / 4294967296
+    }
+    return Array.from({ length: 20 }, () => {
+      const top = `${rand() * 100}%`
+      const left = `${rand() * 100}%`
+      const width = `${rand() * 100 + 50}px`
+      const height = `${rand() * 100 + 50}px`
+      const xAmp = rand() * 20 - 10
+      const duration = rand() * 5 + 5
+      const delay = rand() * 5
+      return { top, left, width, height, xAmp, duration, delay }
+    })
+  }, [])
 
   useEffect(() => {
     setIsVisible(true)
@@ -33,13 +65,25 @@ export default function HeroSection() {
       const x = (rect.left + rect.width / 2) / window.innerWidth
       const y = (rect.top + rect.height / 2) / window.innerHeight
 
-      confetti({
+      confettiFn?.({
         particleCount: 100,
         spread: 70,
         origin: { x, y },
         colors: ["#ffbf00", "#00a8e8", "#4cd964", "#0e2e47"],
       })
     }
+  }
+
+  const burstAtElement = (el: HTMLElement) => {
+    const rect = el.getBoundingClientRect()
+    const x = (rect.left + rect.width / 2) / window.innerWidth
+    const y = (rect.top + rect.height / 2) / window.innerHeight
+    confettiFn?.({
+      particleCount: 80,
+      spread: 60,
+      origin: { x, y },
+      colors: ["#ffbf00", "#00a8e8", "#4cd964", "#0e2e47"],
+    })
   }
 
   const floatingElements = [
@@ -49,7 +93,7 @@ export default function HeroSection() {
     { icon: <Sparkles className="h-full w-full" />, color: "bg-[#ffbf00]", size: "h-6 w-6", delay: 1.5 },
   ]
 
-  const textVariants = {
+  const textVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
       opacity: 1,
@@ -57,12 +101,12 @@ export default function HeroSection() {
       transition: {
         delay: i * 0.1,
         duration: 0.5,
-        ease: "easeOut",
+        ease: [0.17, 0.55, 0.55, 1],
       },
     }),
   }
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -73,7 +117,7 @@ export default function HeroSection() {
     },
   }
 
-  const illustrationVariants = {
+  const illustrationVariants: any = {
     hidden: { opacity: 0, scale: 0.8, rotate: -5 },
     visible: {
       opacity: 1,
@@ -81,7 +125,7 @@ export default function HeroSection() {
       rotate: 0,
       transition: {
         duration: 0.8,
-        ease: "easeOut",
+        ease: [0.17, 0.55, 0.55, 1],
         delay: 0.2,
       },
     },
@@ -96,26 +140,26 @@ export default function HeroSection() {
     <section ref={ref} className="relative overflow-hidden bg-gradient-to-b from-[#e6f7ff] to-white py-16 md:py-24">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {circles.map((c, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full bg-gradient-to-r from-[#00a8e8]/10 to-[#4cd964]/10"
             style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              width: `${Math.random() * 100 + 50}px`,
-              height: `${Math.random() * 100 + 50}px`,
+              top: c.top,
+              left: c.left,
+              width: c.width,
+              height: c.height,
             }}
             animate={{
               y: [0, -30, 0],
-              x: [0, Math.random() * 20 - 10, 0],
+              x: [0, c.xAmp, 0],
               opacity: [0.1, 0.3, 0.1],
             }}
             transition={{
-              duration: Math.random() * 5 + 5,
+              duration: c.duration,
               repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
-              delay: Math.random() * 5,
+              delay: c.delay,
             }}
           />
         ))}
@@ -253,35 +297,84 @@ export default function HeroSection() {
             whileHover="hover"
           >
             <div className="relative h-[350px] w-[350px] sm:h-[400px] sm:w-[400px] md:h-[500px] md:w-[500px]">
-              <Image src="/hero-illustration.png" alt="Study Buddy Illustration" fill className="object-contain" />
-
-              {/* Interactive elements around the illustration */}
-              <motion.div
+              {/* Interactive logo badges (no background image) */}
+              <motion.button
+                type="button"
                 className="absolute top-[10%] right-[10%] h-16 w-16 cursor-pointer"
-                whileHover={{ scale: 1.2, rotate: 10 }}
+                whileHover={{ scale: 1.15, rotate: 8 }}
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+                onClick={(e) => burstAtElement(e.currentTarget)}
               >
-                <Image src="/math-icon.png" alt="Math" width={64} height={64} className="object-contain" />
-              </motion.div>
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#ffbf00] shadow-md ring-1 ring-black/5">
+                  <Calculator className="h-8 w-8" />
+                </div>
+              </motion.button>
 
-              <motion.div
+              <motion.button
+                type="button"
                 className="absolute bottom-[15%] left-[5%] h-16 w-16 cursor-pointer"
-                whileHover={{ scale: 1.2, rotate: -10 }}
+                whileHover={{ scale: 1.15, rotate: -8 }}
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, delay: 0.5 }}
+                onClick={(e) => burstAtElement(e.currentTarget)}
               >
-                <Image src="/science-icon.png" alt="Science" width={64} height={64} className="object-contain" />
-              </motion.div>
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#4cd964] shadow-md ring-1 ring-black/5">
+                  <Atom className="h-8 w-8" />
+                </div>
+              </motion.button>
 
-              <motion.div
+              <motion.button
+                type="button"
                 className="absolute top-[40%] left-[0%] h-16 w-16 cursor-pointer"
-                whileHover={{ scale: 1.2, rotate: 10 }}
+                whileHover={{ scale: 1.15, rotate: 8 }}
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, delay: 1 }}
+                onClick={(e) => burstAtElement(e.currentTarget)}
               >
-                <Image src="/language-icon.png" alt="Language" width={64} height={64} className="object-contain" />
-              </motion.div>
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#00a8e8] shadow-md ring-1 ring-black/5">
+                  <Languages className="h-8 w-8" />
+                </div>
+              </motion.button>
+
+              <motion.button
+                type="button"
+                className="absolute top-[15%] left-[15%] h-14 w-14 cursor-pointer"
+                whileHover={{ scale: 1.15, rotate: 6 }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.4, delay: 0.2 }}
+                onClick={(e) => burstAtElement(e.currentTarget)}
+              >
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#00a8e8] shadow-md ring-1 ring-black/5">
+                  <BookOpen className="h-7 w-7" />
+                </div>
+              </motion.button>
+
+              <motion.button
+                type="button"
+                className="absolute bottom-[10%] right-[20%] h-14 w-14 cursor-pointer"
+                whileHover={{ scale: 1.15, rotate: -6 }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.6, delay: 0.4 }}
+                onClick={(e) => burstAtElement(e.currentTarget)}
+              >
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#4cd964] shadow-md ring-1 ring-black/5">
+                  <Brain className="h-7 w-7" />
+                </div>
+              </motion.button>
+
+              <motion.button
+                type="button"
+                className="absolute top-[55%] right-[25%] h-12 w-12 cursor-pointer"
+                whileHover={{ scale: 1.15, rotate: 4 }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.2, delay: 0.6 }}
+                onClick={(e) => burstAtElement(e.currentTarget)}
+              >
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#ffbf00] shadow-md ring-1 ring-black/5">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+              </motion.button>
             </div>
           </motion.div>
         </div>

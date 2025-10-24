@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useInView } from "framer-motion"
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, Star, Clock, Sparkles, Target, Lightbulb, Plus } from "lucide-react"
@@ -157,26 +157,41 @@ export default function WhyUsSection() {
 
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
+        {useMemo(() => {
+          let seed = 2024
+          const rand = () => {
+            seed = (seed * 1664525 + 1013904223) % 4294967296
+            return seed / 4294967296
+          }
+          return Array.from({ length: 10 }, () => ({
+            top: `${rand() * 100}%`,
+            left: `${rand() * 100}%`,
+            width: `${rand() * 100 + 50}px`,
+            height: `${rand() * 100 + 50}px`,
+            xAmp: rand() * 20 - 10,
+            duration: rand() * 5 + 5,
+            delay: rand() * 5,
+          }))
+        }, []).map((c, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full bg-gradient-to-r from-[#00a8e8]/5 to-[#4cd964]/5"
             style={{
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              width: `${Math.random() * 100 + 50}px`,
-              height: `${Math.random() * 100 + 50}px`,
+              top: c.top,
+              left: c.left,
+              width: c.width,
+              height: c.height,
             }}
             animate={{
               y: [0, -30, 0],
-              x: [0, Math.random() * 20 - 10, 0],
+              x: [0, c.xAmp, 0],
               opacity: [0.1, 0.2, 0.1],
             }}
             transition={{
-              duration: Math.random() * 5 + 5,
+              duration: c.duration,
               repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
-              delay: Math.random() * 5,
+              delay: c.delay,
             }}
           />
         ))}
