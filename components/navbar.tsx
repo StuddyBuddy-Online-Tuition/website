@@ -34,7 +34,9 @@ export default function Navbar() {
           </Link>
         </nav>
         <div className="hidden md:flex">
-          <Button className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold">Book a Session</Button>
+          <Button asChild className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold">
+            <Link href="/register">Register Now!</Link>
+          </Button>
         </div>
         <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -78,7 +80,9 @@ export default function Navbar() {
             >
               Contact
             </Link>
-            <Button className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold w-full">Book a Session</Button>
+            <Button asChild className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold w-full">
+              <Link href="/register">Book a Session</Link>
+            </Button>
           </nav>
         </div>
       )}
