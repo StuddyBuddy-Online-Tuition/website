@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { motion, useAnimation, useInView } from "framer-motion"
 import { Star, ArrowRight, Sparkles, BookOpen, Brain, Calculator, Atom, Languages } from "lucide-react"
-// Load confetti dynamically on client to avoid SSR/type issues
+import confetti from "canvas-confetti"
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -15,20 +15,6 @@ export default function HeroSection() {
   const controls = useAnimation()
   const ref = useRef(null)
   const inView = useInView(ref)
-  const [confettiFn, setConfettiFn] = useState<null | ((opts?: any) => void)>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import("canvas-confetti")
-      .then((m) => {
-        if (!mounted) return
-        setConfettiFn(() => m.default as any)
-      })
-      .catch(() => {})
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   // Deterministic seeded random to avoid SSR/CSR hydration mismatches
   const circles = useMemo(() => {
@@ -65,7 +51,7 @@ export default function HeroSection() {
       const x = (rect.left + rect.width / 2) / window.innerWidth
       const y = (rect.top + rect.height / 2) / window.innerHeight
 
-      confettiFn?.({
+      confetti({
         particleCount: 100,
         spread: 70,
         origin: { x, y },
@@ -78,7 +64,7 @@ export default function HeroSection() {
     const rect = el.getBoundingClientRect()
     const x = (rect.left + rect.width / 2) / window.innerWidth
     const y = (rect.top + rect.height / 2) / window.innerHeight
-    confettiFn?.({
+    confetti({
       particleCount: 80,
       spread: 60,
       origin: { x, y },
