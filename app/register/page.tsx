@@ -1,39 +1,26 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, Calendar, BookOpen, User, Phone, Mail } from "lucide-react"
+import confetti from "canvas-confetti"
 
 export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
-  const [confettiFn, setConfettiFn] = useState<null | ((opts?: any) => void)>(null)
   const submitBtnRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    let mounted = true
-    import("canvas-confetti")
-      .then((m) => {
-        if (!mounted) return
-        setConfettiFn(() => m.default as any)
-      })
-      .catch(() => {})
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitting(true)
     const el = submitBtnRef.current
-    if (el && confettiFn) {
+    if (el) {
       const rect = el.getBoundingClientRect()
       const x = (rect.left + rect.width / 2) / window.innerWidth
       const y = (rect.top + rect.height / 2) / window.innerHeight
-      confettiFn({ particleCount: 120, spread: 70, origin: { x, y }, colors: ["#ffbf00", "#00a8e8", "#4cd964", "#0e2e47"] })
+      confetti({ particleCount: 120, spread: 70, origin: { x, y }, colors: ["#ffbf00", "#00a8e8", "#4cd964", "#0e2e47"] })
     }
     setTimeout(() => {
       setSubmitting(false)
