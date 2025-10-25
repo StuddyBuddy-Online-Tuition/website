@@ -24,10 +24,12 @@ export default function RootLayout({
       <head>
         <script async src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} min-h-dvh flex flex-col`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <Navbar />
-          {children}
+          <div className="flex-1">
+            {children}
+          </div>
           <Footer />
         </ThemeProvider>
       </body>
