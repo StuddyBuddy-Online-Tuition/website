@@ -4,17 +4,48 @@ import { useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Check, Calendar, BookOpen, User, Phone, Mail } from "lucide-react"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Check, BookOpen, User, Phone, Mail, X, Languages, Dna, Atom, Globe, Calculator, FlaskConical } from "lucide-react"
 import confetti from "canvas-confetti"
+
+const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "F1", "F2", "F3", "F4", "F5", "CP"]
+const SUBJECT_OPTIONS = [
+  "English",
+  "Bahasa Malaysia",
+  "Biology",
+  "Physics",
+  "Geography",
+  "Kimia",
+  "Mathematics",
+]
+const SUBJECT_ICONS: Record<string, any> = {
+  English: BookOpen,
+  "Bahasa Malaysia": Languages,
+  Biology: Dna,
+  Physics: Atom,
+  Geography: Globe,
+  Kimia: FlaskConical,
+  Mathematics: Calculator,
+}
 
 export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [subjectsOpen, setSubjectsOpen] = useState(false)
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const submitBtnRef = useRef<HTMLButtonElement>(null)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitting(true)
+    setTimeout(() => {
+      setSubmitting(false)
+      e.currentTarget.reset()
+    }, 800)
+  }
+
+  const handleButtonClick = () => {
     const el = submitBtnRef.current
     if (el) {
       const rect = el.getBoundingClientRect()
@@ -22,11 +53,16 @@ export default function RegisterPage() {
       const y = (rect.top + rect.height / 2) / window.innerHeight
       confetti({ particleCount: 120, spread: 70, origin: { x, y }, colors: ["#ffbf00", "#00a8e8", "#4cd964", "#0e2e47"] })
     }
-    setTimeout(() => {
-      setSubmitting(false)
-      e.currentTarget.reset()
-    }, 800)
+    setSuccess(true)
   }
+
+  const toggleSubject = (subject: string) => {
+    setSelectedSubjects((prev) =>
+      prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject]
+    )
+  }
+
+  
 
   // Deterministic animated background (orbs + dots) to avoid hydration mismatches
   const orbs = useMemo(() => {
@@ -66,7 +102,8 @@ export default function RegisterPage() {
   const fieldCls = "grid gap-2"
 
   return (
-    <section className="relative overflow-hidden bg-linear-to-b from-[#e6f7ff] to-white py-16 md:py-24">
+    <>
+    <section className="relative overflow-hidden bg-linear-to-b from-[#e6f7ff] to-white py-12 md:py-24">
       {/* Background animation */}
       <div className="absolute inset-0 pointer-events-none">
         {orbs.map((c, i) => (
@@ -107,6 +144,7 @@ export default function RegisterPage() {
             </motion.div>
           </div>
 
+          {!success ? (
           <motion.form
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 20 }}
@@ -121,21 +159,21 @@ export default function RegisterPage() {
               <div className="grid gap-4">
                 <div className={fieldCls}>
                   <label className={labelCls}>Parent Full Name</label>
-                  <Input name="parentName" placeholder="Jane Doe" required className="bg-white" />
+                  <Input name="parentname" placeholder="Nur Aisyah binti Ahmad" required className="bg-white" />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className={fieldCls}>
                     <label className={labelCls}>Email</label>
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                      <Input name="email" type="email" placeholder="jane@example.com" required className="pl-9 bg-white" />
+                      <Input name="email" type="email" placeholder="contoh@email.com" required className="pl-9 bg-white" />
                     </div>
                   </div>
                   <div className={fieldCls}>
                     <label className={labelCls}>Phone</label>
                     <div className="relative">
                       <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                      <Input name="phone" type="tel" placeholder="(555) 123-4567" required className="pl-9 bg-white" />
+                      <Input name="parentphone" type="tel" placeholder="012-345 6789" required className="pl-9 bg-white" />
                     </div>
                   </div>
                 </div>
@@ -149,60 +187,97 @@ export default function RegisterPage() {
               <div className="grid gap-4">
                 <div className={fieldCls}>
                   <label className={labelCls}>Student Full Name</label>
-                  <Input name="studentName" placeholder="Johnny Doe" required className="bg-white" />
+                  <Input name="full_name" placeholder="Muhammad Danish bin Ali" required className="bg-white" />
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className={fieldCls}>
-                    <label className={labelCls}>Grade</label>
+                    <label className={labelCls}>Choose Grade (For Year 2026)</label>
                     <select name="grade" required className="h-10 w-full rounded-md border bg-white px-3 text-sm">
-                      <option value="">Select grade</option>
-                      <option>Elementary</option>
-                      <option>Middle School</option>
-                      <option>High School</option>
+                      <option value="">Grade</option>
+                      {GRADE_OPTIONS.map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
                     </select>
                   </div>
                   <div className={fieldCls}>
-                    <label className={labelCls}>Preferred Schedule</label>
+                    <label className={labelCls}>Student Phone</label>
                     <div className="relative">
-                      <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                      <Input name="schedule" placeholder="e.g. Weeknights, 6–8 PM" className="pl-9 bg-white" />
+                      <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <Input name="studentphone" type="tel" placeholder="013-987 6543" className="pl-9 bg-white" />
                     </div>
                   </div>
                 </div>
                 <div className={fieldCls}>
-                  <label className={labelCls}>Subjects (select all that apply)</label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Math",
-                      "Science",
-                      "English",
-                      "History",
-                      "Computer Science",
-                      "Languages",
-                    ].map((s) => (
-                      <label key={s} className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-[#0e2e47] bg-white hover:bg-[#e6f7ff] cursor-pointer">
-                        <input type="checkbox" name="subjects" value={s} className="accent-[#00a8e8]" />
-                        {s}
-                      </label>
-                    ))}
+                  <label className={labelCls}>School</label>
+                  <Input name="school" placeholder="SMK Taman Melawati" className="bg-white" />
+                </div>
+                <div className={fieldCls}>
+                  <label className={labelCls}>Preferred Name</label>
+                  <Input name="name" placeholder="Danish" className="bg-white" />
+                </div>
+                <div className={fieldCls}>
+                  <label className={labelCls}>IC Number</label>
+                  <Input name="ic_number" placeholder="010203-10-1234" className="bg-white" />
+                </div>
+                <div className={fieldCls}>
+                  <label className={labelCls}>Subjects</label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button type="button" onClick={() => setSubjectsOpen(true)} className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]">
+                      {`Select subjects${selectedSubjects.length ? ` (${selectedSubjects.length})` : ""}`}
+                    </Button>
+                    {selectedSubjects.length === 0 ? (
+                      <span className="text-sm text-gray-500">No subjects selected</span>
+                    ) : (
+                      selectedSubjects.map((s) => {
+                        const Icon = SUBJECT_ICONS[s] || BookOpen
+                        return (
+                          <span key={s} className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
+                            <Icon className="h-3.5 w-3.5" />
+                            {s}
+                            <button type="button" aria-label={`Remove ${s}`} onClick={() => toggleSubject(s)} className="hover:text-[#00a8e8]">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        )
+                      })
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
             <div className={cardCls + " md:col-span-2"}>
-              <div className={fieldCls}>
-                <label className={labelCls}>Anything we should know?</label>
-                <Textarea name="notes" placeholder="Learning goals, specific challenges, preferred teaching style, etc." className="min-h-[100px] bg-white" />
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-4">
+              <div className="mt-0 flex flex-col items-center justify-between gap-3 sm:flex-row sm:gap-4">
                 <p className="text-sm text-gray-500">We’ll reach out within one business day.</p>
-                <Button ref={submitBtnRef} type="submit" disabled={submitting} className="bg-[#00a8e8] hover:bg-[#0077b6]">
+                <Button ref={submitBtnRef} type="submit" onClick={handleButtonClick} disabled={submitting} className="w-full sm:w-auto bg-[#00a8e8] hover:bg-[#0077b6]">
                   {submitting ? "Submitting..." : "Submit Registration"}
                 </Button>
               </div>
             </div>
           </motion.form>
+          ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="grid gap-6 md:grid-cols-2"
+          >
+            <div className={cardCls + " md:col-span-2"}>
+              <div className="flex flex-col items-center gap-3 text-center p-4 sm:p-6">
+                <div className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#4cd964]/20">
+                  <Check className="h-6 w-6 text-[#4cd964]" />
+                </div>
+                <h2 className="text-lg sm:text-xl font-semibold text-[#0e2e47]">Registration submitted</h2>
+                <p className="text-gray-600 text-sm sm:text-base">We’ll contact you within one business day.</p>
+              </div>
+            </div>
+          </motion.div>
+          )}
+
+          {/* Hidden inputs for selected subjects to submit with the form */}
+          {!success && selectedSubjects.map((s) => (
+            <input key={s} type="hidden" name="subjects" value={s} />
+          ))}
 
           <motion.div
             className="mt-8 flex items-center justify-center gap-2 text-sm text-gray-600"
@@ -215,6 +290,41 @@ export default function RegisterPage() {
         </div>
       </div>
     </section>
+
+    {/* Subjects selection modal */}
+    <Dialog open={subjectsOpen} onOpenChange={setSubjectsOpen}>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Select subjects</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {SUBJECT_OPTIONS.map((s, i) => {
+            const id = `subject-${i}`
+            const checked = selectedSubjects.includes(s)
+            const Icon = SUBJECT_ICONS[s] || BookOpen
+            return (
+              <label key={s} htmlFor={id} className="flex items-center gap-3 rounded-md border p-3 hover:bg-[#f6fbff]">
+                <Checkbox id={id} checked={checked} onCheckedChange={(v) => v === true ? toggleSubject(s) : toggleSubject(s)} />
+                <span className="text-sm text-[#0e2e47] flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  {s}
+                </span>
+              </label>
+            )
+          })}
+        </div>
+        <DialogFooter>
+          <Button type="button" className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]" onClick={() => setSelectedSubjects([])}>
+            Clear
+          </Button>
+          <Button type="button" className="bg-[#00a8e8] hover:bg-[#0077b6]" onClick={() => setSubjectsOpen(false)}>
+            Done
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    
+    </>
   )
 }
 
