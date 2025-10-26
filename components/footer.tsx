@@ -14,9 +14,9 @@ export default function Footer() {
               height={48}
               className="rounded-full bg-white p-1 shadow-md"
             />
-            <span className="text-xl font-bold tracking-tight">Study Buddy</span>
+            <span className="text-xl font-bold tracking-tight">StudyBuddy</span>
           </div>
-          <p className="mt-2 text-gray-300">Study Buddy is your go-to online tutoring platform. Connect with expert tutors who care about your academic. Learn at your own pace, anytime, anywhere. Find your perfect study buddy today!</p>
+          <p className="mt-2 text-gray-300">StudyBuddy is your go-to online tutoring platform. Connect with expert tutors who care about your academic. Learn at your own pace, anytime, anywhere. Find your perfect study buddy today!</p>
           <div className="mt-4 flex items-center justify-center gap-3">
             <a aria-label="Facebook" href="#" className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -44,7 +44,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-6 border-t border-white/10 pt-4 text-center text-gray-300 flex flex-col items-center gap-2 md:flex-row md:justify-between md:text-left">
-          <p>© {new Date().getFullYear()} Studybuddy Synergy Sdn Bhd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} StudyBuddy Synergy Sdn Bhd. All rights reserved.</p>
           <Link
             href="https://www.wanaqim.dev"
             target="_blank"

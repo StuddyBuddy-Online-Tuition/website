@@ -136,7 +136,7 @@ export default function RegisterPage() {
                 <BookOpen className="h-4 w-4 text-[#ffbf00]" /> Parent Registration
               </div>
               <h1 className="mt-3 text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">
-                Enroll Your Child with Study Buddy
+                Enroll Your Child with StudyBuddy
               </h1>
               <p className="mx-auto mt-3 max-w-[700px] text-gray-600 md:text-lg">
                 Share a few details and we’ll match your child with the perfect tutor.
