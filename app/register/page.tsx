@@ -3,9 +3,11 @@
 import { useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { ButtonGroup } from "@/components/ui/button-group"
 import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
+import { SubjectsModal } from "@/components/register/subjects-modal"
+import { PackagesModal } from "@/components/register/packages-modal"
 import { Check, BookOpen, User, Phone, Mail, X, Languages, Dna, Atom, Globe, Calculator, FlaskConical } from "lucide-react"
 import confetti from "canvas-confetti"
 
@@ -13,27 +15,124 @@ const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "F1", "F2", "F3", "F4", "F5
 const SUBJECT_OPTIONS = [
   "English",
   "Bahasa Malaysia",
+  "Mathematics",
+  "Addmath",
+  "Science",
+  "Sejarah",
+  "Kimia",
   "Biology",
   "Physics",
   "Geography",
-  "Kimia",
-  "Mathematics",
+  "Prinsip Akaun",
+  "Ekonomi",
+  "Perniagaan",
 ]
 const SUBJECT_ICONS: Record<string, any> = {
   English: BookOpen,
   "Bahasa Malaysia": Languages,
   Biology: Dna,
+  Biologi: Dna,
   Physics: Atom,
+  Fizik: Atom,
   Geography: Globe,
   Kimia: FlaskConical,
   Mathematics: Calculator,
+  Addmath: Calculator,
+  Sains: FlaskConical,
+  Sejarah: Globe,
+  "Prinsip Akaun": Calculator,
+  Ekonomi: Calculator,
+  Perniagaan: Globe,
+}
+
+const PACKAGES = [
+  {
+    id: "pcs-s4-6",
+    groupName: "Pakej Cuti Sekolah",
+    tier: "Standard 4,5,6",
+    normalPriceMonthly: 99.9,
+    promoPriceMonthly: 99.9,
+    promoStart: "2025-12-03",
+    promoEnd: "2026-01-10",
+    popular: false,
+    subjects: [
+      "Bahasa Malaysia",
+      "English",
+      "Mathematics",
+      "Science",
+      "Sejarah",
+    ],
+  },
+  {
+    id: "pcs-f1-3",
+    groupName: "Pakej Cuti Sekolah",
+    tier: "Form 1,2,3",
+    normalPriceMonthly: 129.9,
+    promoPriceMonthly: 129.9,
+    promoStart: "2025-12-03",
+    promoEnd: "2026-01-10",
+    popular: false,
+    subjects: [
+      "Bahasa Malaysia",
+      "English",
+      "Mathematics",
+      "Science",
+      "Sejarah",
+    ],
+  },
+  {
+    id: "pcs-f4-5",
+    groupName: "Pakej Cuti Sekolah",
+    tier: "Form 4,5",
+    normalPriceMonthly: 149.9,
+    promoPriceMonthly: 149.9,
+    promoStart: "2025-12-03",
+    promoEnd: "2026-01-10",
+    popular: true,
+    subjects: [
+      "Bahasa Malaysia",
+      "English",
+      "Mathematics",
+      "Sejarah",
+      "Kimia",
+      "Biology",
+      "Physics",
+      "Addmath",
+      "Science",
+      "Prinsip Akaun",
+      "Ekonomi",
+      "Perniagaan",
+    ],
+  },
+]
+
+function isPromoActive(pkg: any, now: Date = new Date()) {
+  if (!pkg?.promoStart || !pkg?.promoEnd) return false
+  const start = new Date(pkg.promoStart)
+  const end = new Date(pkg.promoEnd)
+  return now >= start && now <= end
+}
+
+function getPackagePricing(pkg: any) {
+  const promo = isPromoActive(pkg)
+  const normalPrice = typeof pkg.normalPriceMonthly === "number" ? pkg.normalPriceMonthly : pkg.priceMonthly
+  const promoPrice = typeof pkg.promoPriceMonthly === "number" ? pkg.promoPriceMonthly : normalPrice
+  return {
+    isPromo: promo && promoPrice !== undefined,
+    price: promo ? promoPrice : normalPrice,
+    normalPrice,
+    promoPrice,
+  }
 }
 
 export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [subjectsOpen, setSubjectsOpen] = useState(false)
+  const [packagesOpen, setPackagesOpen] = useState(false)
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const [selectionMode, setSelectionMode] = useState<"subjects" | "package">("subjects")
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const submitBtnRef = useRef<HTMLButtonElement>(null)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,6 +159,19 @@ export default function RegisterPage() {
     setSelectedSubjects((prev) =>
       prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject]
     )
+  }
+
+  const handleSelectPackage = (id: string) => {
+    setSelectedPackageId(id)
+    const pkg = PACKAGES.find((p) => p.id === id)
+    if (pkg) setSelectedSubjects(pkg.subjects)
+    setSelectionMode("package")
+  }
+
+  const clearPackage = () => {
+    setSelectedPackageId(null)
+    setSelectionMode("subjects")
+    setSelectedSubjects([])
   }
 
   
@@ -189,6 +301,10 @@ export default function RegisterPage() {
                   <label className={labelCls}>Student Full Name</label>
                   <Input name="full_name" placeholder="Muhammad Danish bin Ali" required className="bg-white" />
                 </div>
+                <div className={fieldCls}>
+                  <label className={labelCls}>IC Number</label>
+                  <Input name="ic_number" placeholder="010203-10-1234" className="bg-white" />
+                </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className={fieldCls}>
                     <label className={labelCls}>Choose Grade (For Year 2026)</label>
@@ -216,33 +332,77 @@ export default function RegisterPage() {
                   <Input name="name" placeholder="Danish" className="bg-white" />
                 </div>
                 <div className={fieldCls}>
-                  <label className={labelCls}>IC Number</label>
-                  <Input name="ic_number" placeholder="010203-10-1234" className="bg-white" />
-                </div>
-                <div className={fieldCls}>
-                  <label className={labelCls}>Subjects</label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button type="button" onClick={() => setSubjectsOpen(true)} className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]">
-                      {`Select subjects${selectedSubjects.length ? ` (${selectedSubjects.length})` : ""}`}
+                  <label className={labelCls}>Choose by</label>
+                  <ButtonGroup>
+                    <Button
+                      type="button"
+                      onClick={() => setSelectionMode("subjects")}
+                      className={selectionMode === "subjects" ? "bg-[#00a8e8] text-white hover:bg-[#0077b6]" : "border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]"}
+                      aria-pressed={selectionMode === "subjects"}
+                    >
+                      Subjects
                     </Button>
-                    {selectedSubjects.length === 0 ? (
-                      <span className="text-sm text-gray-500">No subjects selected</span>
-                    ) : (
-                      selectedSubjects.map((s) => {
-                        const Icon = SUBJECT_ICONS[s] || BookOpen
-                        return (
-                          <span key={s} className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
-                            <Icon className="h-3.5 w-3.5" />
-                            {s}
-                            <button type="button" aria-label={`Remove ${s}`} onClick={() => toggleSubject(s)} className="hover:text-[#00a8e8]">
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </span>
-                        )
-                      })
-                    )}
-                  </div>
+                    <Button
+                      type="button"
+                      onClick={() => setSelectionMode("package")}
+                      className={selectionMode === "package" ? "bg-[#00a8e8] text-white hover:bg-[#0077b6]" : "border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]"}
+                      aria-pressed={selectionMode === "package"}
+                    >
+                      Package
+                    </Button>
+                  </ButtonGroup>
                 </div>
+
+                {selectionMode === "subjects" ? (
+                  <div className={fieldCls}>
+                    <label className={labelCls}>Subjects</label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" onClick={() => setSubjectsOpen(true)} className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]">
+                        {`Select subjects${selectedSubjects.length ? ` (${selectedSubjects.length})` : ""}`}
+                      </Button>
+                      {selectedSubjects.length === 0 ? (
+                        <span className="text-sm text-gray-500">No subjects selected</span>
+                      ) : (
+                        selectedSubjects.map((s) => {
+                          const Icon = SUBJECT_ICONS[s] || BookOpen
+                          return (
+                            <span key={s} className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
+                              <Icon className="h-3.5 w-3.5" />
+                              {s}
+                              <button type="button" aria-label={`Remove ${s}`} onClick={() => toggleSubject(s)} className="hover:text-[#00a8e8]">
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </span>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={fieldCls}>
+                    <label className={labelCls}>Package</label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" onClick={() => setPackagesOpen(true)} className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]">
+                        {selectedPackageId ? "Change package" : "Select package"}
+                      </Button>
+                      {selectedPackageId ? (
+                        <>
+                          <span className="text-sm text-gray-600">
+                            Selected package:
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
+                            {PACKAGES.find((p) => p.id === selectedPackageId)?.tier}
+                          </span>
+                          <Button type="button" onClick={clearPackage} className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]">
+                            Clear
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-500">No package selected</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -278,6 +438,13 @@ export default function RegisterPage() {
           {!success && selectedSubjects.map((s) => (
             <input key={s} type="hidden" name="subjects" value={s} />
           ))}
+          {/* Hidden inputs for selected package */}
+          {!success && selectedPackageId && (
+            <>
+              <input type="hidden" name="package_id" value={selectedPackageId} />
+              <input type="hidden" name="package_name" value={PACKAGES.find((p) => p.id === selectedPackageId)?.tier || ""} />
+            </>
+          )}
 
           <motion.div
             className="mt-8 flex items-center justify-center gap-2 text-sm text-gray-600"
@@ -291,38 +458,27 @@ export default function RegisterPage() {
       </div>
     </section>
 
-    {/* Subjects selection modal */}
-    <Dialog open={subjectsOpen} onOpenChange={setSubjectsOpen}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Select subjects</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {SUBJECT_OPTIONS.map((s, i) => {
-            const id = `subject-${i}`
-            const checked = selectedSubjects.includes(s)
-            const Icon = SUBJECT_ICONS[s] || BookOpen
-            return (
-              <label key={s} htmlFor={id} className="flex items-center gap-3 rounded-md border p-3 hover:bg-[#f6fbff]">
-                <Checkbox id={id} checked={checked} onCheckedChange={(v) => v === true ? toggleSubject(s) : toggleSubject(s)} />
-                <span className="text-sm text-[#0e2e47] flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  {s}
-                </span>
-              </label>
-            )
-          })}
-        </div>
-        <DialogFooter>
-          <Button type="button" className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]" onClick={() => setSelectedSubjects([])}>
-            Clear
-          </Button>
-          <Button type="button" className="bg-[#00a8e8] hover:bg-[#0077b6]" onClick={() => setSubjectsOpen(false)}>
-            Done
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <SubjectsModal
+      open={subjectsOpen}
+      onOpenChange={setSubjectsOpen}
+      options={SUBJECT_OPTIONS}
+      selected={selectedSubjects}
+      onToggle={toggleSubject}
+      onClear={() => setSelectedSubjects([])}
+      onDone={() => setSubjectsOpen(false)}
+      icons={SUBJECT_ICONS}
+    />
+
+    <PackagesModal
+      open={packagesOpen}
+      onOpenChange={setPackagesOpen}
+      packages={PACKAGES as any}
+      selectedPackageId={selectedPackageId}
+      onSelectPackage={handleSelectPackage}
+      onClear={clearPackage}
+      onDone={() => setPackagesOpen(false)}
+      getPricing={getPackagePricing as any}
+    />
     
     </>
   )
