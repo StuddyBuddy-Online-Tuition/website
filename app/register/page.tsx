@@ -3,13 +3,13 @@
 import { useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { ButtonGroup } from "@/components/ui/button-group"
 import { Input } from "@/components/ui/input"
 import { SubjectsModal } from "@/components/register/subjects-modal"
 import { PackagesModal } from "@/components/register/packages-modal"
 import { Check, BookOpen, User, Phone, Mail, X, Languages, Dna, Atom, Globe, Calculator, FlaskConical } from "lucide-react"
-import confetti from "canvas-confetti"
+ 
+import Script from "next/script"
 
 const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "F1", "F2", "F3", "F4", "F5", "CP"]
 const SUBJECT_OPTIONS = [
@@ -133,27 +133,59 @@ export default function RegisterPage() {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [selectionMode, setSelectionMode] = useState<"subjects" | "package">("subjects")
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
-  const submitBtnRef = useRef<HTMLButtonElement>(null)
+  const [recaptchaToken, setRecaptchaToken] = useState<string>("")
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  const recaptchaAction = "register_submit"
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSubmitting(true)
-    setTimeout(() => {
+    const formEl = e.currentTarget
+    try {
+      let token = ""
+      if (typeof window !== "undefined" && (window as any).grecaptcha && recaptchaSiteKey) {
+        await new Promise<void>((resolve) => (window as any).grecaptcha.ready(() => resolve()))
+        token = await (window as any).grecaptcha.execute(recaptchaSiteKey, { action: recaptchaAction })
+        setRecaptchaToken(token || "")
+      }
+
+      const fd = new FormData(formEl)
+      const body = {
+        parentname: fd.get("parentname") as string | null,
+        email: fd.get("email") as string | null,
+        parentphone: fd.get("parentphone") as string | null,
+        full_name: fd.get("full_name") as string | null,
+        ic_number: fd.get("ic_number") as string | null,
+        grade: fd.get("grade") as string | null,
+        studentphone: fd.get("studentphone") as string | null,
+        school: fd.get("school") as string | null,
+        name: fd.get("name") as string | null,
+        subjects: selectedSubjects,
+        package_id: selectedPackageId,
+        package_name: selectedPackageId ? (PACKAGES.find((p) => p.id === selectedPackageId)?.tier || null) : null,
+        recaptcha_token: token || null,
+      }
+
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      if (res.ok) {
+        setSuccess(true)
+        formEl.reset()
+      } else {
+        // noop for now; could show a toast
+      }
+    } catch (_) {
+      // noop for now; could show a toast
+    } finally {
       setSubmitting(false)
-      e.currentTarget.reset()
-    }, 800)
+    }
   }
 
-  const handleButtonClick = () => {
-    const el = submitBtnRef.current
-    if (el) {
-      const rect = el.getBoundingClientRect()
-      const x = (rect.left + rect.width / 2) / window.innerWidth
-      const y = (rect.top + rect.height / 2) / window.innerHeight
-      confetti({ particleCount: 120, spread: 70, origin: { x, y }, colors: ["#ffbf00", "#00a8e8", "#4cd964", "#0e2e47"] })
-    }
-    setSuccess(true)
-  }
+  
 
   const toggleSubject = (subject: string) => {
     setSelectedSubjects((prev) =>
@@ -215,6 +247,9 @@ export default function RegisterPage() {
 
   return (
     <>
+    {recaptchaSiteKey ? (
+      <Script src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`} strategy="afterInteractive" />
+    ) : null}
     <section className="relative overflow-hidden bg-linear-to-b from-[#e6f7ff] to-white py-12 md:py-24">
       {/* Background animation */}
       <div className="absolute inset-0 pointer-events-none">
@@ -409,11 +444,20 @@ export default function RegisterPage() {
             <div className={cardCls + " md:col-span-2"}>
               <div className="mt-0 flex flex-col items-center justify-between gap-3 sm:flex-row sm:gap-4">
                 <p className="text-sm text-gray-500">We’ll reach out within one business day.</p>
-                <Button ref={submitBtnRef} type="submit" onClick={handleButtonClick} disabled={submitting} className="w-full sm:w-auto bg-[#00a8e8] hover:bg-[#0077b6]">
+                <Button type="submit" disabled={submitting} className="w-full sm:w-auto bg-[#00a8e8] hover:bg-[#0077b6]">
                   {submitting ? "Submitting..." : "Submit Registration"}
                 </Button>
               </div>
+              <p className="mt-3 text-xs text-gray-400 text-center sm:text-left">
+                This site is protected by reCAPTCHA and the Google
+                {" "}
+                <a className="underline hover:text-[#00a8e8]" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
+                {" "}and{ " "}
+                <a className="underline hover:text-[#00a8e8]" href="https://policies.google.com/terms" target="_blank" rel="noreferrer">Terms of Service</a>
+                {" "}apply.
+              </p>
             </div>
+            <input type="hidden" name="recaptcha_token" value={recaptchaToken} />
           </motion.form>
           ) : (
           <motion.div
