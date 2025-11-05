@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useInView } from "framer-motion"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -10,12 +10,48 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle } from "lucide-react"
+import { Phone, Mail, MapPin, Clock, Send, CheckCircle, BookOpen, Languages, Dna, Atom, Globe, Calculator, FlaskConical, X } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 export default function ContactSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   const [formSubmitted, setFormSubmitted] = useState(false)
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const [topic, setTopic] = useState<string>("general")
+  const searchParams = useSearchParams()
+
+  const SUBJECT_ICONS: Record<string, any> = {
+    English: BookOpen,
+    "Bahasa Malaysia": Languages,
+    Biology: Dna,
+    Biologi: Dna,
+    Physics: Atom,
+    Fizik: Atom,
+    Geography: Globe,
+    Kimia: FlaskConical,
+    Mathematics: Calculator,
+    Addmath: Calculator,
+    Sains: FlaskConical,
+    Sejarah: Globe,
+    "Prinsip Akaun": Calculator,
+    Ekonomi: Calculator,
+    Perniagaan: Globe,
+  }
+
+  useEffect(() => {
+    const raw = searchParams?.get("subjects") || ""
+    if (!raw) return
+    const list = raw
+      .split(",")
+      .map((s) => decodeURIComponent(s).trim())
+      .filter(Boolean)
+    const deduped = Array.from(new Set(list)).slice(0, 6)
+    if (deduped.length) {
+      setSelectedSubjects(deduped)
+      setTopic("subjects-info")
+    }
+  }, [searchParams])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -168,7 +204,7 @@ export default function ContactSection() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
-                  <Select>
+                  <Select value={topic} onValueChange={setTopic}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a subject" />
                     </SelectTrigger>
@@ -177,10 +213,36 @@ export default function ContactSection() {
                       <SelectItem value="tutoring">Tutoring Services</SelectItem>
                       <SelectItem value="pricing">Pricing Information</SelectItem>
                       <SelectItem value="schedule">Scheduling</SelectItem>
+                      <SelectItem value="subjects-info">Subjects Information</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {selectedSubjects.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Subjects Selected</Label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {selectedSubjects.map((s) => {
+                        const Icon = SUBJECT_ICONS[s] || BookOpen
+                        return (
+                          <span key={s} className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
+                            <Icon className="h-3.5 w-3.5" />
+                            {s}
+                            <button
+                              type="button"
+                              aria-label={`Remove ${s}`}
+                              onClick={() => setSelectedSubjects((prev) => prev.filter((v) => v !== s))}
+                              className="hover:text-[#00a8e8]"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
                   <Textarea id="message" placeholder="Enter your message" className="min-h-[120px]" required />

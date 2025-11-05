@@ -1,115 +1,61 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState, useEffect } from "react"
 import { useInView } from "framer-motion"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calculator, Atom, BookOpen, Globe, Code, Music, Palette, Languages, ChevronRight, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function SubjectsSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("elementary")
   const [hoveredSubject, setHoveredSubject] = useState<number | null>(null)
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobilePage, setMobilePage] = useState(0)
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 768px)")
+    const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    setIsMobile(mql.matches)
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", listener)
+      return () => mql.removeEventListener("change", listener)
+    } else {
+      // Safari
+      // @ts-ignore
+      mql.addListener(listener)
+      // @ts-ignore
+      return () => mql.removeListener(listener)
+    }
+  }, [])
 
   const subjectCategories = {
     elementary: [
-      {
-        icon: <Calculator className="h-6 w-6" />,
-        name: "Basic Math",
-        description: "Building a strong foundation in numbers, counting, and basic operations.",
-      },
-      {
-        icon: <BookOpen className="h-6 w-6" />,
-        name: "Reading",
-        description: "Developing reading skills, comprehension, and a love for books.",
-      },
-      {
-        icon: <Palette className="h-6 w-6" />,
-        name: "Writing",
-        description: "Learning to express ideas through words, sentences, and stories.",
-      },
-      {
-        icon: <Atom className="h-6 w-6" />,
-        name: "Science",
-        description: "Exploring the natural world through fun, hands-on experiments.",
-      },
-      {
-        icon: <Globe className="h-6 w-6" />,
-        name: "Social Studies",
-        description: "Learning about communities, history, and the world around us.",
-      },
-      {
-        icon: <Music className="h-6 w-6" />,
-        name: "Arts & Crafts",
-        description: "Expressing creativity through various artistic mediums.",
-      },
-    ],
-    middle: [
-      {
-        icon: <Calculator className="h-6 w-6" />,
-        name: "Pre-Algebra",
-        description: "Preparing for algebraic concepts with number properties and equations.",
-      },
-      {
-        icon: <BookOpen className="h-6 w-6" />,
-        name: "Literature",
-        description: "Analyzing texts, understanding themes, and developing critical thinking.",
-      },
-      {
-        icon: <Palette className="h-6 w-6" />,
-        name: "Essay Writing",
-        description: "Crafting well-structured paragraphs and essays with clear arguments.",
-      },
-      {
-        icon: <Atom className="h-6 w-6" />,
-        name: "Life Science",
-        description: "Exploring biology, ecology, and the living world around us.",
-      },
-      {
-        icon: <Globe className="h-6 w-6" />,
-        name: "World History",
-        description: "Learning about civilizations, cultures, and significant historical events.",
-      },
-      {
-        icon: <Languages className="h-6 w-6" />,
-        name: "Foreign Languages",
-        description: "Building vocabulary and conversation skills in a new language.",
-      },
+      { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Personalized tutoring in English." },
+      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Bantuan pembelajaran Bahasa Malaysia." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Core math skills and problem solving." },
+      { icon: <Atom className="h-6 w-6" />, name: "Science", description: "Foundational science concepts." },
+      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Introductory history and timelines." },
     ],
     high: [
-      {
-        icon: <Calculator className="h-6 w-6" />,
-        name: "Algebra & Calculus",
-        description: "Mastering advanced mathematical concepts and problem-solving.",
-      },
-      {
-        icon: <Atom className="h-6 w-6" />,
-        name: "Physics & Chemistry",
-        description: "Understanding the fundamental laws and principles of science.",
-      },
-      {
-        icon: <BookOpen className="h-6 w-6" />,
-        name: "Advanced Literature",
-        description: "Critical analysis of complex texts and literary techniques.",
-      },
-      {
-        icon: <Palette className="h-6 w-6" />,
-        name: "Research Writing",
-        description: "Developing research skills and crafting academic papers.",
-      },
-      {
-        icon: <Code className="h-6 w-6" />,
-        name: "Computer Science",
-        description: "Learning programming fundamentals and computational thinking.",
-      },
-      {
-        icon: <Globe className="h-6 w-6" />,
-        name: "AP/IB Subjects",
-        description: "Specialized preparation for Advanced Placement and IB exams.",
-      },
+      { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Advanced English skills and exam prep." },
+      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Pengukuhan Bahasa Malaysia dan persediaan peperiksaan." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Comprehensive mathematics tutoring." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Addmath", description: "Additional mathematics topics and techniques." },
+      { icon: <Atom className="h-6 w-6" />, name: "Science", description: "General science concepts and applications." },
+      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Malaysian and world history topics." },
+      { icon: <Atom className="h-6 w-6" />, name: "Kimia", description: "Chemistry principles and problem solving." },
+      { icon: <Atom className="h-6 w-6" />, name: "Biology", description: "Biology concepts and exam strategies." },
+      { icon: <Atom className="h-6 w-6" />, name: "Physics", description: "Physics fundamentals and calculations." },
+      { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Prinsip Akaun", description: "Principles of accounting." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Ekonomi", description: "Economics theory and practice." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Perniagaan", description: "Business studies essentials." },
     ],
   }
 
@@ -122,14 +68,16 @@ export default function SubjectsSection() {
   }
 
   const tabColors = {
-    elementary: { bg: "bg-[#00a8e8]", text: "text-[#00a8e8]", hover: "hover:bg-[#e6f7ff]" },
-    middle: { bg: "bg-[#ffbf00]", text: "text-[#ffbf00]", hover: "hover:bg-[#fff2cc]" },
-    high: { bg: "bg-[#4cd964]", text: "text-[#4cd964]", hover: "hover:bg-[#e6ffea]" },
+    elementary: { bg: "bg-[#00a8e8]", text: "text-[#00a8e8]", hover: "hover:bg-[#e6f7ff]", ring: "ring-[#00a8e8]" },
+    high: { bg: "bg-[#4cd964]", text: "text-[#4cd964]", hover: "hover:bg-[#e6ffea]", ring: "ring-[#4cd964]" },
   }
+
+  const PAGE_SIZE = 6
+  const MAX_SUBJECTS = 6
 
   return (
     <section id="subjects" ref={ref} className="py-16 md:py-24 bg-[#f8fafc] relative">
-      <div className="container px-4 md:px-6">
+      <div className="relative z-10 container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <motion.div
             className="space-y-2"
@@ -148,16 +96,25 @@ export default function SubjectsSection() {
         </div>
 
         <div className="mx-auto max-w-5xl py-12">
-          <Tabs defaultValue="elementary" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+          <Tabs
+            defaultValue="elementary"
+            className="w-full"
+            onValueChange={(v) => {
+              setActiveTab(v)
+              setMobilePage(0)
+            }}
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-8">
               {Object.entries(tabColors).map(([level, colors]) => (
                 <TabsTrigger
                   key={level}
                   value={level}
-                  className={`text-base relative overflow-hidden ${activeTab === level ? `${colors.bg} text-white` : ""}`}
+                  className={`text-base relative overflow-hidden ${
+                    activeTab === level ? `${colors.bg} text-white ring-2 ${colors.ring} shadow-sm` : ""
+                  }`}
                 >
                   <motion.span
-                    className="absolute inset-0 opacity-20"
+                    className={`absolute inset-0 ${activeTab === level ? "opacity-40" : "opacity-20"}`}
                     initial={false}
                     animate={
                       activeTab !== level
@@ -179,7 +136,12 @@ export default function SubjectsSection() {
             {Object.entries(subjectCategories).map(([level, subjects]) => (
               <TabsContent key={level} value={level} className="mt-0">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {subjects.map((subject, index) => (
+                  {(isMobile
+                    ? subjects
+                        .slice(0, MAX_SUBJECTS)
+                        .slice(mobilePage * PAGE_SIZE, mobilePage * PAGE_SIZE + PAGE_SIZE)
+                    : subjects.slice(0, MAX_SUBJECTS)
+                  ).map((subject, index) => (
                     <motion.div
                       key={index}
                       style={{
@@ -261,6 +223,35 @@ export default function SubjectsSection() {
                   ))}
                 </div>
 
+                {isMobile && Math.min(subjects.length, MAX_SUBJECTS) > PAGE_SIZE && (
+                  <div className="mt-6 flex items-center justify-center gap-3 sm:hidden">
+                    <Button
+                      variant="outline"
+                      onClick={() => setMobilePage((p) => Math.max(0, p - 1))}
+                      disabled={mobilePage === 0}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      Page {mobilePage + 1} of {Math.ceil(Math.min(subjects.length, MAX_SUBJECTS) / PAGE_SIZE)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setMobilePage((p) =>
+                          Math.min(
+                            Math.ceil(Math.min(subjects.length, MAX_SUBJECTS) / PAGE_SIZE) - 1,
+                            p + 1
+                          )
+                        )
+                      }
+                      disabled={mobilePage >= Math.ceil(Math.min(subjects.length, MAX_SUBJECTS) / PAGE_SIZE) - 1}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+
                 {selectedSubjects.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -274,7 +265,11 @@ export default function SubjectsSection() {
                     </p>
                     <Button
                       className="bg-[#00a8e8] hover:bg-[#0077b6]"
-                      onClick={() => alert(`You've selected: ${selectedSubjects.join(", ")}`)}
+                      onClick={() => {
+                        const list = selectedSubjects.slice(0, 6)
+                        const q = list.map((s) => encodeURIComponent(s)).join(",")
+                        router.push(`/?subjects=${q}#contact`)
+                      }}
                     >
                       Request Information
                     </Button>
@@ -287,13 +282,20 @@ export default function SubjectsSection() {
       </div>
 
       {/* Animated floating subject icons */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {[
-          { icon: <Calculator className="h-full w-full text-[#00a8e8]/10" />, size: 40 },
-          { icon: <BookOpen className="h-full w-full text-[#ffbf00]/10" />, size: 50 },
-          { icon: <Atom className="h-full w-full text-[#4cd964]/10" />, size: 45 },
-          { icon: <Globe className="h-full w-full text-[#00a8e8]/10" />, size: 35 },
-          { icon: <Code className="h-full w-full text-[#ffbf00]/10" />, size: 30 },
+          { icon: <Calculator className="h-full w-full text-[#00a8e8]/30" />, size: 40 },
+          { icon: <BookOpen className="h-full w-full text-[#ffbf00]/30" />, size: 50 },
+          { icon: <Atom className="h-full w-full text-[#4cd964]/30" />, size: 45 },
+          { icon: <Globe className="h-full w-full text-[#00a8e8]/30" />, size: 35 },
+          { icon: <Code className="h-full w-full text-[#ffbf00]/30" />, size: 30 },
+          { icon: <Music className="h-full w-full text-[#4cd964]/30" />, size: 34 },
+          { icon: <Palette className="h-full w-full text-[#00a8e8]/30" />, size: 28 },
+          { icon: <Languages className="h-full w-full text-[#ffbf00]/30" />, size: 38 },
+          { icon: <Calculator className="h-full w-full text-[#00a8e8]/30" />, size: 26 },
+          { icon: <Atom className="h-full w-full text-[#4cd964]/30" />, size: 32 },
+          { icon: <Globe className="h-full w-full text-[#00a8e8]/30" />, size: 44 },
+          { icon: <BookOpen className="h-full w-full text-[#ffbf00]/30" />, size: 36 },
         ].map((item, i) => (
           <motion.div
             key={i}
