@@ -15,6 +15,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { ButtonGroup } from "@/components/ui/button-group"
+import { SubjectsPackages } from "@/components/subjects-packages"
 
 export default function SubjectsSection() {
   const ref = useRef(null)
@@ -25,6 +27,8 @@ export default function SubjectsSection() {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [pageSize, setPageSize] = useState(3)
   const [currentPage, setCurrentPage] = useState(1)
+  const [viewMode, setViewMode] = useState<"subjects" | "package">("subjects")
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
 
   const subjectCategories = {
     primary: [
@@ -57,6 +61,69 @@ export default function SubjectsSection() {
       { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography." },
     ],
   }
+
+  const PACKAGES = [
+    {
+      id: "pcs-s4-6",
+      groupName: "Pakej Cuti Sekolah",
+      tier: "Standard 4,5,6",
+      normalPriceMonthly: 99.9,
+      promoPriceMonthly: 99.9,
+      promoStart: "2025-12-03",
+      promoEnd: "2026-01-10",
+      popular: false,
+      subjects: [
+        "Bahasa Malaysia",
+        "English",
+        "Mathematics",
+        "Science",
+        "Sejarah",
+      ],
+    },
+    {
+      id: "pcs-f1-3",
+      groupName: "Pakej Cuti Sekolah",
+      tier: "Form 1,2,3",
+      normalPriceMonthly: 129.9,
+      promoPriceMonthly: 129.9,
+      promoStart: "2025-12-03",
+      promoEnd: "2026-01-10",
+      popular: false,
+      subjects: [
+        "Bahasa Malaysia",
+        "English",
+        "Mathematics",
+        "Science",
+        "Sejarah",
+      ],
+    },
+    {
+      id: "pcs-f4-5",
+      groupName: "Pakej Cuti Sekolah",
+      tier: "Form 4,5",
+      normalPriceMonthly: 149.9,
+      promoPriceMonthly: 149.9,
+      promoStart: "2025-12-03",
+      promoEnd: "2026-01-10",
+      popular: true,
+      subjects: [
+        "Bahasa Malaysia",
+        "English",
+        "Mathematics",
+        "Sejarah",
+        "Kimia",
+        "Biology",
+        "Physics",
+        "Addmath",
+        "Science",
+        "Prinsip Akaun",
+        "Ekonomi",
+        "Perniagaan",
+      ],
+    },
+  ]
+
+  
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -169,6 +236,28 @@ export default function SubjectsSection() {
         </div>
 
         <div className="mx-auto max-w-5xl py-12">
+          <div className="mb-12 flex w-full justify-center">
+            <ButtonGroup>
+              <Button
+                type="button"
+                onClick={() => setViewMode("subjects")}
+                className={viewMode === "subjects" ? "bg-[#00a8e8] text-white hover:bg[#0077b6]" : "border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]"}
+                aria-pressed={viewMode === "subjects"}
+              >
+                Subjects
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setViewMode("package")}
+                className={viewMode === "package" ? "bg-[#00a8e8] text-white hover:bg[#0077b6]" : "border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]"}
+                aria-pressed={viewMode === "package"}
+              >
+                Packages
+              </Button>
+            </ButtonGroup>
+          </div>
+
+          {viewMode === "subjects" ? (
           <Tabs
             defaultValue="primary"
             className="w-full"
@@ -388,21 +477,42 @@ export default function SubjectsSection() {
                       You've selected {selectedSubjects.length} subject{selectedSubjects.length !== 1 ? "s" : ""}:
                       <span className="font-medium text-[#00a8e8]"> {selectedSubjects.join(", ")}</span>
                     </p>
-                    <Button
-                      className="bg-[#00a8e8] hover:bg-[#0077b6]"
-                      onClick={() => {
-                        const list = selectedSubjects.slice(0, 6)
-                        const q = list.map((s) => encodeURIComponent(s)).join(",")
-                        router.push(`/?subjects=${q}#contact`)
-                      }}
-                    >
-                      Request Information
-                    </Button>
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                      <Button
+                        className="bg-[#00a8e8] hover:bg-[#0077b6]"
+                        onClick={() => {
+                          const list = selectedSubjects.slice(0, 6)
+                          const q = list.map((s) => encodeURIComponent(s)).join(",")
+                          router.push(`/?subjects=${q}#contact`)
+                        }}
+                      >
+                        Request Information
+                      </Button>
+                      <Button
+                        type="button"
+                        className="border bg-white text-[#0e2e47] hover:bg-[#e6f7ff]"
+                        onClick={() => {
+                          setSelectedSubjects([])
+                          setSelectedPackageId(null)
+                        }}
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </TabsContent>
             ))}
           </Tabs>
+          ) : (
+            <SubjectsPackages
+              packages={PACKAGES as any}
+              selectedPackageId={selectedPackageId}
+              setSelectedPackageId={setSelectedPackageId}
+              setSelectedSubjects={setSelectedSubjects}
+              isInView={isInView}
+            />
+          )}
         </div>
       </div>
 
