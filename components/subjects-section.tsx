@@ -7,57 +7,124 @@ import { Calculator, Atom, BookOpen, Globe, Code, Music, Palette, Languages, Che
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 export default function SubjectsSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("elementary")
+  const [activeTab, setActiveTab] = useState("primary")
   const [hoveredSubject, setHoveredSubject] = useState<number | null>(null)
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
-  const [isMobile, setIsMobile] = useState(false)
-  const [mobilePage, setMobilePage] = useState(0)
-
-  useEffect(() => {
-    const mql = window.matchMedia("(max-width: 768px)")
-    const listener = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    setIsMobile(mql.matches)
-    if (typeof mql.addEventListener === "function") {
-      mql.addEventListener("change", listener)
-      return () => mql.removeEventListener("change", listener)
-    } else {
-      // Safari
-      // @ts-ignore
-      mql.addListener(listener)
-      // @ts-ignore
-      return () => mql.removeListener(listener)
-    }
-  }, [])
+  const [pageSize, setPageSize] = useState(3)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const subjectCategories = {
-    elementary: [
+    primary: [
       { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Personalized tutoring in English." },
       { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Bantuan pembelajaran Bahasa Malaysia." },
       { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Core math skills and problem solving." },
       { icon: <Atom className="h-6 w-6" />, name: "Science", description: "Foundational science concepts." },
       { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Introductory history and timelines." },
     ],
-    high: [
+    lowerSecondary: [
+      { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Strengthen language skills and comprehension." },
+      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Pengukuhan Bahasa Malaysia untuk menengah rendah." },
+      { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Algebraic thinking and applied problem solving." },
+      { icon: <Atom className="h-6 w-6" />, name: "Science", description: "Integrated science: physics, chemistry, biology foundations." },
+      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Kurikulum sejarah menengah rendah." },
+      { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography basics." },
+    ],
+    upperSecondary: [
       { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Advanced English skills and exam prep." },
-      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Pengukuhan Bahasa Malaysia dan persediaan peperiksaan." },
+      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Persediaan peperiksaan dan karangan." },
       { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Comprehensive mathematics tutoring." },
       { icon: <Calculator className="h-6 w-6" />, name: "Addmath", description: "Additional mathematics topics and techniques." },
-      { icon: <Atom className="h-6 w-6" />, name: "Science", description: "General science concepts and applications." },
-      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Malaysian and world history topics." },
-      { icon: <Atom className="h-6 w-6" />, name: "Kimia", description: "Chemistry principles and problem solving." },
-      { icon: <Atom className="h-6 w-6" />, name: "Biology", description: "Biology concepts and exam strategies." },
       { icon: <Atom className="h-6 w-6" />, name: "Physics", description: "Physics fundamentals and calculations." },
-      { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography." },
+      { icon: <Atom className="h-6 w-6" />, name: "Chemistry", description: "Chemistry principles and problem solving." },
+      { icon: <Atom className="h-6 w-6" />, name: "Biology", description: "Biology concepts and exam strategies." },
+      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Malaysian and world history topics." },
       { icon: <Calculator className="h-6 w-6" />, name: "Prinsip Akaun", description: "Principles of accounting." },
       { icon: <Calculator className="h-6 w-6" />, name: "Ekonomi", description: "Economics theory and practice." },
       { icon: <Calculator className="h-6 w-6" />, name: "Perniagaan", description: "Business studies essentials." },
+      { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography." },
     ],
   }
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const resolvePageSize = () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        return 3
+      }
+      if (window.matchMedia("(min-width: 768px)").matches) {
+        return 2
+      }
+      return 1
+    }
+
+    const updatePageSize = () => {
+      setPageSize((prev) => {
+        const next = resolvePageSize()
+        return prev === next ? prev : next
+      })
+    }
+
+    updatePageSize()
+    window.addEventListener("resize", updatePageSize)
+    return () => {
+      window.removeEventListener("resize", updatePageSize)
+    }
+  }, [])
+
+  const currentSubjects = useMemo(() => {
+    return (subjectCategories as any)[activeTab] || []
+  }, [activeTab])
+
+  const totalPages = Math.max(1, Math.ceil(currentSubjects.length / pageSize))
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab])
+
+  useEffect(() => {
+    setCurrentPage((prev) => {
+      const maxPage = totalPages || 1
+      return prev > maxPage ? maxPage : prev
+    })
+  }, [totalPages])
+
+  const handlePageChange = (page: number) => {
+    const nextPage = Math.min(Math.max(page, 1), totalPages)
+    if (nextPage === currentPage) return
+    setCurrentPage(nextPage)
+  }
+
+  const getVisiblePages = (total: number, current: number): (number | "ellipsis")[] => {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1)
+    }
+    const pages: (number | "ellipsis")[] = [1]
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+    if (start > 2) pages.push("ellipsis")
+    for (let p = start; p <= end; p++) pages.push(p)
+    if (end < total - 1) pages.push("ellipsis")
+    pages.push(total)
+    return pages
+  }
+
+  
 
   const toggleSubjectSelection = (subject: string) => {
     if (selectedSubjects.includes(subject)) {
@@ -68,12 +135,18 @@ export default function SubjectsSection() {
   }
 
   const tabColors = {
-    elementary: { bg: "bg-[#00a8e8]", text: "text-[#00a8e8]", hover: "hover:bg-[#e6f7ff]", ring: "ring-[#00a8e8]" },
-    high: { bg: "bg-[#4cd964]", text: "text-[#4cd964]", hover: "hover:bg-[#e6ffea]", ring: "ring-[#4cd964]" },
+    primary: { bg: "bg-[#00a8e8]", text: "text-[#00a8e8]", hover: "hover:bg-[#e6f7ff]", ring: "ring-[#00a8e8]" },
+    lowerSecondary: { bg: "bg-[#4cd964]", text: "text-[#4cd964]", hover: "hover:bg-[#e6ffea]", ring: "ring-[#4cd964]" },
+    upperSecondary: { bg: "bg-[#ffbf00]", text: "text-[#ffbf00]", hover: "hover:bg-[#fff7e6]", ring: "ring-[#ffbf00]" },
   }
 
-  const PAGE_SIZE = 6
-  const MAX_SUBJECTS = 6
+  const levelLabels: Record<string, string> = {
+    primary: "Primary (Std 4–6)",
+    lowerSecondary: "Lower Secondary (Form 1–3)",
+    upperSecondary: "Upper Secondary (Form 4–5)",
+  }
+
+  
 
   return (
     <section id="subjects" ref={ref} className="py-16 md:py-24 bg-[#f8fafc] relative">
@@ -97,14 +170,14 @@ export default function SubjectsSection() {
 
         <div className="mx-auto max-w-5xl py-12">
           <Tabs
-            defaultValue="elementary"
+            defaultValue="primary"
             className="w-full"
             onValueChange={(v) => {
               setActiveTab(v)
-              setMobilePage(0)
+              setCurrentPage(1)
             }}
           >
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               {Object.entries(tabColors).map(([level, colors]) => (
                 <TabsTrigger
                   key={level}
@@ -128,129 +201,179 @@ export default function SubjectsSection() {
                     transition={{ duration: 0.3 }}
                     style={{ background: colors.bg }}
                   />
-                  <span className="relative">{level.charAt(0).toUpperCase() + level.slice(1)} School</span>
+                  <span className="relative">{levelLabels[level] || level}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
 
             {Object.entries(subjectCategories).map(([level, subjects]) => (
               <TabsContent key={level} value={level} className="mt-0">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {(isMobile
-                    ? subjects
-                        .slice(0, MAX_SUBJECTS)
-                        .slice(mobilePage * PAGE_SIZE, mobilePage * PAGE_SIZE + PAGE_SIZE)
-                    : subjects.slice(0, MAX_SUBJECTS)
-                  ).map((subject, index) => (
-                    <motion.div
-                      key={index}
-                      style={{
-                        transform: isInView && activeTab === level ? "none" : "translateY(20px)",
-                        opacity: isInView && activeTab === level ? 1 : 0,
-                        transition: `all 0.5s cubic-bezier(0.17, 0.55, 0.55, 1) ${0.1 * index}s`,
-                      }}
-                      className={`flex flex-col space-y-3 rounded-xl border bg-white p-6 shadow-sm transition-all ${
-                        hoveredSubject === index ? "shadow-lg" : "hover:shadow-md"
-                      } ${selectedSubjects.includes(subject.name) ? "border-[#00a8e8] border-2" : ""}`}
-                      onMouseEnter={() => setHoveredSubject(index)}
-                      onMouseLeave={() => setHoveredSubject(null)}
-                      onClick={() => toggleSubjectSelection(subject.name)}
-                    >
-                      <div className="relative">
-                        <motion.div
-                          className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e6f7ff] text-[#00a8e8]"
-                          whileHover={{ rotate: 10, scale: 1.1 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          {subject.icon}
-                        </motion.div>
+                <div className="relative overflow-x-hidden pb-0">
+                  <motion.div
+                    initial={false}
+                    animate={{ x: `-${(currentPage - 1) * 100}%` }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="flex w-full"
+                  >
+                    {Array.from({ length: Math.max(1, Math.ceil(subjects.length / pageSize)) }, (_, pageIndex) => (
+                      <div key={pageIndex} className="grid w-full shrink-0 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {subjects
+                          .slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
+                          .map((subject, index) => (
+                            <motion.div
+                              key={`${subject.name}-${index}`}
+                              style={{
+                                transform: isInView && activeTab === level ? "none" : "translateY(20px)",
+                                opacity: isInView && activeTab === level ? 1 : 0,
+                                transition: `all 0.5s cubic-bezier(0.17, 0.55, 0.55, 1) ${0.1 * index}s`,
+                              }}
+                              className={`flex flex-col space-y-3 rounded-xl border bg-white p-6 shadow-sm transition-all ${
+                                hoveredSubject === index ? "shadow-lg" : "hover:shadow-md"
+                              } ${selectedSubjects.includes(subject.name) ? "border-[#00a8e8] border-2" : ""}`}
+                              onMouseEnter={() => setHoveredSubject(index)}
+                              onMouseLeave={() => setHoveredSubject(null)}
+                              onClick={() => toggleSubjectSelection(subject.name)}
+                            >
+                              <div className="relative">
+                                <motion.div
+                                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[#e6f7ff] text-[#00a8e8]"
+                                  whileHover={{ rotate: 10, scale: 1.1 }}
+                                  transition={{ type: "spring", stiffness: 300 }}
+                                >
+                                  {subject.icon}
+                                </motion.div>
 
-                        {selectedSubjects.includes(subject.name) && (
-                          <motion.div
-                            className="absolute -top-2 -right-2 bg-[#00a8e8] text-white rounded-full p-1"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                          >
-                            <Check className="h-4 w-4" />
-                          </motion.div>
-                        )}
+                                {selectedSubjects.includes(subject.name) && (
+                                  <motion.div
+                                    className="absolute -top-2 -right-2 bg-[#00a8e8] text-white rounded-full p-1"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </motion.div>
+                                )}
+                              </div>
+
+                              <h3 className="text-xl font-bold text-[#0e2e47]">{subject.name}</h3>
+                              <p className="text-gray-600">{subject.description}</p>
+
+                              <AnimatePresence>
+                                {hoveredSubject === index && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden"
+                                  >
+                                    <ul className="text-sm text-gray-600 space-y-1 mt-2">
+                                      <li className="flex items-center">
+                                        <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
+                                        <span>One-on-one tutoring</span>
+                                      </li>
+                                      <li className="flex items-center">
+                                        <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
+                                        <span>Homework help</span>
+                                      </li>
+                                      <li className="flex items-center">
+                                        <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
+                                        <span>Test preparation</span>
+                                      </li>
+                                    </ul>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+
+                              <Button
+                                variant="ghost"
+                                className="mt-auto justify-start p-0 text-[#00a8e8] hover:text-[#0077b6] group"
+                              >
+                                Learn more
+                                <motion.span
+                                  animate={hoveredSubject === index ? { x: 5 } : { x: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                >
+                                  <ChevronRight className="ml-1 h-4 w-4" />
+                                </motion.span>
+                              </Button>
+                            </motion.div>
+                          ))}
                       </div>
-
-                      <h3 className="text-xl font-bold text-[#0e2e47]">{subject.name}</h3>
-                      <p className="text-gray-600">{subject.description}</p>
-
-                      <AnimatePresence>
-                        {hoveredSubject === index && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <ul className="text-sm text-gray-600 space-y-1 mt-2">
-                              <li className="flex items-center">
-                                <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
-                                <span>One-on-one tutoring</span>
-                              </li>
-                              <li className="flex items-center">
-                                <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
-                                <span>Homework help</span>
-                              </li>
-                              <li className="flex items-center">
-                                <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
-                                <span>Test preparation</span>
-                              </li>
-                            </ul>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <Button
-                        variant="ghost"
-                        className="mt-auto justify-start p-0 text-[#00a8e8] hover:text-[#0077b6] group"
-                      >
-                        Learn more
-                        <motion.span
-                          animate={hoveredSubject === index ? { x: 5 } : { x: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </motion.span>
-                      </Button>
-                    </motion.div>
-                  ))}
+                    ))}
+                  </motion.div>
                 </div>
 
-                {isMobile && Math.min(subjects.length, MAX_SUBJECTS) > PAGE_SIZE && (
-                  <div className="mt-6 flex items-center justify-center gap-3 sm:hidden">
-                    <Button
-                      variant="outline"
-                      onClick={() => setMobilePage((p) => Math.max(0, p - 1))}
-                      disabled={mobilePage === 0}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm text-gray-600">
-                      Page {mobilePage + 1} of {Math.ceil(Math.min(subjects.length, MAX_SUBJECTS) / PAGE_SIZE)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setMobilePage((p) =>
-                          Math.min(
-                            Math.ceil(Math.min(subjects.length, MAX_SUBJECTS) / PAGE_SIZE) - 1,
-                            p + 1
+                <Pagination className="mt-10 w-full justify-center">
+                  <PaginationContent className="rounded-full bg-[#f2fbff] px-3 py-1.5 shadow-sm">
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#subjects"
+                        onClick={(event) => {
+                          event.preventDefault()
+                          if (currentPage > 1) {
+                            handlePageChange(currentPage - 1)
+                          }
+                        }}
+                        className="text-[#0e2e47] hover:text-[#00a8e8]"
+                        data-disabled={currentPage === 1}
+                        aria-disabled={currentPage === 1}
+                      />
+                    </PaginationItem>
+                    <PaginationItem className="sm:hidden">
+                      <span className="px-2 text-xs font-medium text-[#0e2e47]">
+                        {currentPage} / {Math.max(1, Math.ceil(subjects.length / pageSize))}
+                      </span>
+                    </PaginationItem>
+                    {(() => {
+                      const levelTotal = Math.max(1, Math.ceil(subjects.length / pageSize))
+                      const items = getVisiblePages(levelTotal, currentPage)
+                      return items.map((token, idx) => {
+                        if (token === "ellipsis") {
+                          return (
+                            <PaginationItem key={`e-${idx}`} className="hidden sm:list-item">
+                              <span className="px-2 text-[#0e2e47]">…</span>
+                            </PaginationItem>
                           )
+                        }
+                        const page = token as number
+                        return (
+                          <PaginationItem key={page} className="hidden sm:list-item">
+                            <PaginationLink
+                              href="#subjects"
+                              isActive={page === currentPage}
+                              onClick={(event) => {
+                                event.preventDefault()
+                                handlePageChange(page)
+                              }}
+                              className={
+                                page === currentPage ? "border-[#00a8e8] text-[#00a8e8]" : "text-[#0e2e47] hover:text-[#00a8e8]"
+                              }
+                              aria-label={`Go to page ${page}`}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
                         )
-                      }
-                      disabled={mobilePage >= Math.ceil(Math.min(subjects.length, MAX_SUBJECTS) / PAGE_SIZE) - 1}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
+                      })
+                    })()}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#subjects"
+                        onClick={(event) => {
+                          event.preventDefault()
+                          const levelTotal = Math.max(1, Math.ceil(subjects.length / pageSize))
+                          if (currentPage < levelTotal) {
+                            handlePageChange(currentPage + 1)
+                          }
+                        }}
+                        className="text-[#0e2e47] hover:text-[#00a8e8]"
+                        data-disabled={currentPage === Math.max(1, Math.ceil(subjects.length / pageSize))}
+                        aria-disabled={currentPage === Math.max(1, Math.ceil(subjects.length / pageSize))}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
 
                 {selectedSubjects.length > 0 && (
                   <motion.div
