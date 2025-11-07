@@ -177,13 +177,15 @@ export default function SubjectsSection() {
               setCurrentPage(1)
             }}
           >
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="mb-8 flex w-full flex-col gap-2 rounded-xl bg-[#f4f8fb] p-1 sm:grid sm:grid-cols-3 sm:gap-2 sm:bg-transparent sm:p-0">
               {Object.entries(tabColors).map(([level, colors]) => (
                 <TabsTrigger
                   key={level}
                   value={level}
-                  className={`text-base relative overflow-hidden ${
-                    activeTab === level ? `${colors.bg} text-white ring-2 ${colors.ring} shadow-sm` : ""
+                  className={`group relative w-full overflow-hidden rounded-full px-4 py-3 text-base transition-all border ${
+                    activeTab === level
+                      ? `${colors.bg} text-white ring-2 ${colors.ring} shadow-md border-transparent`
+                      : `bg-white text-[#0e2e47] ${colors.hover} border-gray-200`
                   }`}
                 >
                   <motion.span
