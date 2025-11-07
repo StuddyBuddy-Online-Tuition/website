@@ -18,6 +18,7 @@ export default function ContactSection() {
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const [selectedPackage, setSelectedPackage] = useState<{ groupName: string; tier: string } | null>(null)
   const [topic, setTopic] = useState<string>("general")
   const searchParams = useSearchParams()
 
@@ -50,6 +51,16 @@ export default function ContactSection() {
     if (deduped.length) {
       setSelectedSubjects(deduped)
       setTopic("subjects-info")
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    const groupName = searchParams?.get("package_groupName") || ""
+    const tier = searchParams?.get("package_tier") || ""
+    if (groupName || tier) {
+      setSelectedPackage({ groupName: decodeURIComponent(groupName), tier: decodeURIComponent(tier) })
+    } else {
+      setSelectedPackage(null)
     }
   }, [searchParams])
 
@@ -240,6 +251,24 @@ export default function ContactSection() {
                           </span>
                         )
                       })}
+                    </div>
+                  </div>
+                )}
+                {selectedPackage && (
+                  <div className="space-y-2">
+                    <Label>Selected Package</Label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
+                        {[selectedPackage.groupName, selectedPackage.tier].filter(Boolean).join(" — ")}
+                        <button
+                          type="button"
+                          aria-label="Remove selected package"
+                          onClick={() => setSelectedPackage(null)}
+                          className="hover:text-[#00a8e8]"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
                     </div>
                   </div>
                 )}
