@@ -17,7 +17,7 @@ const TEACHERS = [
   {
     name: "Ms. Sarah Johnson",
     role: "Math Specialist",
-  image: "/t1.jpeg",
+  image: "/t5.jpeg",
     description: "With 10+ years of experience teaching mathematics, Ms. Johnson makes numbers fun!",
     subjects: ["Algebra", "Geometry", "Calculus"],
   },
@@ -31,14 +31,14 @@ const TEACHERS = [
   {
     name: "Mrs. Emily Rodriguez",
     role: "Language Arts Tutor",
-  image: "/t3.jpeg",
+  image: "/t7.jpeg",
     description: "Mrs. Rodriguez inspires a love of reading and writing in all her students.",
     subjects: ["English", "Literature", "Writing"],
   },
   {
     name: "Dr. Michael Lee",
     role: "History & Social Studies",
-  image: "/t4.jpg",
+    image: "/t8.jpeg",
     description: "Dr. Lee makes history fascinating with his storytelling approach to teaching.",
     subjects: ["History", "Geography", "Social Studies"],
   },
@@ -52,27 +52,36 @@ const TEACHERS = [
   {
     name: "Mr. Andrew Martin",
     role: "Test Prep Strategist",
-  image: "/t2.jpeg",
+  image: "/t6.jpeg",
     description: "Mr. Martin equips students with confidence-building strategies for high-stakes exams.",
     subjects: ["SAT", "ACT", "PSLE"],
   },
   {
     name: "Dr. Hana Suzuki",
     role: "Creative Arts Mentor",
-  image: "/t3.jpeg",
+   image: "/t3.jpeg",
     description: "Dr. Suzuki blends creativity and critical thinking through multimedia storytelling.",
     subjects: ["Art", "Media Studies", "Drama"],
   },
   {
     name: "Coach Liam O'Connor",
     role: "Executive Skills Coach",
-  image: "/t4.jpg",
+  image: "/t4.jpeg",
     description: "Coach Liam helps learners master organisation, focus, and growth mindset habits.",
     subjects: ["Study Skills", "Mindset", "Leadership"],
   },
 ]
 
 type Teacher = (typeof TEACHERS)[number]
+
+const HOVER_TINT_CLASSES = [
+  "from-[#00a8e8]/15", // blue
+  "from-[#4cd964]/15", // green
+  "from-[#ff8a00]/15", // orange
+  "from-[#ff3b30]/15", // red
+  "from-[#af52de]/15", // purple
+  "from-[#5ac8fa]/15", // light blue
+]
 
 export default function TeachersSection() {
   const ref = useRef(null)
@@ -82,6 +91,9 @@ export default function TeachersSection() {
   const [pageSize, setPageSize] = useState(4)
   const totalPages = Math.ceil(teachers.length / pageSize)
   const [currentPage, setCurrentPage] = useState(1)
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+  const [activeCard, setActiveCard] = useState<string | null>(null)
+  const [hintTeacher, setHintTeacher] = useState<string | null>(null)
 
   useEffect(() => {
     if (isInView) {
@@ -133,6 +145,29 @@ export default function TeachersSection() {
     [teachers, pageSize, totalPages],
   )
 
+  // One-time mobile hint: briefly show the overlay for the first card to teach interaction
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      const isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches
+      const seen = window.localStorage.getItem("teachersOverlayHintSeen")
+      if (!isCoarse || seen) return
+      const firstGroup = pages[0]
+      const firstTeacher = firstGroup && firstGroup[0]
+      if (!firstTeacher) return
+      setHintTeacher(firstTeacher.name)
+      const timer = window.setTimeout(() => {
+        setHintTeacher(null)
+        window.localStorage.setItem("teachersOverlayHintSeen", "1")
+      }, 700)
+      return () => {
+        window.clearTimeout(timer)
+      }
+    } catch {
+      // noop if storage/matchMedia unavailable
+    }
+  }, [pages])
+
   const getVisiblePages = (total: number, current: number): (number | "ellipsis")[] => {
     if (total <= 7) {
       return Array.from({ length: total }, (_, i) => i + 1)
@@ -174,34 +209,91 @@ export default function TeachersSection() {
               initial={false}
               animate={{ x: `-${(currentPage - 1) * 100}%` }}
               transition={{ duration: 0.35, ease: "easeInOut" }}
-              className="flex w-full"
+              className="flex w-full py-4"
             >
               {pages.map((group, pageIndex) => (
                 <div key={pageIndex} className="grid w-full shrink-0 grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                   {group.map((teacher) => (
                     <div
                       key={teacher.name}
-                      className="group relative overflow-hidden rounded-2xl border border-transparent bg-white shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:border-[#00a8e8]/40 hover:shadow-2xl"
+                      className="group relative overflow-hidden rounded-2xl border border-transparent bg-white shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:border-[#00a8e8]/40 hover:shadow-2xl h-[420px] md:h-[440px] lg:h-[460px] cursor-pointer"
+                      role="button"
+                      aria-pressed={activeCard === teacher.name}
+                      aria-label={`View subjects for ${teacher.name}`}
+                      onMouseEnter={() => setHoveredCard(teacher.name)}
+                      onMouseLeave={() => setHoveredCard((prev) => (prev === teacher.name ? null : prev))}
+                      onClick={() => setActiveCard((prev) => (prev === teacher.name ? null : teacher.name))}
                     >
-                      <div className="relative aspect-square overflow-hidden">
-                        <div className="absolute inset-0 bg-linear-to-br from-[#00a8e8]/10 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                        <Image
-                          src={teacher.image || "/placeholder.svg"}
-                          alt={teacher.name}
-                          width={300}
-                          height={300}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-1"
-                        />
-                        <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[#0e2e47] shadow-sm backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                          <span>{teacher.role}</span>
-                          <span className="text-[#00a8e8]">{teacher.subjects[0]}</span>
+                      {/* Brand tint and glow accents to match site language */}
+                      <div className="pointer-events-none absolute -right-8 -top-8 z-20 h-28 w-28 rounded-full bg-linear-to-br from-[#00a8e8]/20 to-transparent blur-2xl" />
+                      <div className="pointer-events-none absolute inset-0 z-20 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#00a8e8]/20 blur-3xl" />
+                      </div>
+
+                      <Image
+                        src={teacher.image || "/placeholder.svg"}
+                        alt={teacher.name}
+                        fill
+                        className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-1"
+                      />
+                      <div
+                        className={`absolute inset-0 z-10 bg-linear-to-br to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none ${
+                          HOVER_TINT_CLASSES[
+                            (TEACHERS.findIndex((t) => t.name === teacher.name) % HOVER_TINT_CLASSES.length + HOVER_TINT_CLASSES.length) %
+                              HOVER_TINT_CLASSES.length
+                          ]
+                        }`}
+                      />
+                      <div className="absolute inset-0 z-10 bg-linear-to-t from-black/30 via-black/0 to-transparent pointer-events-none" />
+
+                      {/* Always-visible minimal name label */}
+                      <div
+                        className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-20 rounded-xl border border-white/60 bg-white/70 px-4 py-2 shadow-lg backdrop-blur-md transition-all duration-300 w-auto max-w-[85%] ${
+                          activeCard === teacher.name || hoveredCard === teacher.name ? 'opacity-0 translate-y-1' : 'opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 className="truncate text-center text-sm font-medium text-[#0e2e47] md:text-base">{teacher.name}</h3>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`h-3.5 w-3.5 text-[#0e2e47]/70 transition-transform duration-300 ${
+                              activeCard === teacher.name || hoveredCard === teacher.name ? 'rotate-180' : ''
+                            }`}
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
                         </div>
                       </div>
-                      <div className="p-5">
-                        <h3 className="text-xl font-bold text-[#0e2e47]">{teacher.name}</h3>
-                        <p className="mt-2 text-sm text-gray-600">{teacher.description}</p>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {teacher.subjects.map((subject) => (
+
+                      <motion.div
+                        initial={false}
+                        animate={activeCard === teacher.name || hoveredCard === teacher.name || hintTeacher === teacher.name ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 8, scale: 0.98 }}
+                        transition={{ type: "spring", bounce: 0.25, duration: 0.35 }}
+                        className="absolute inset-x-3 bottom-3 z-30 rounded-xl border border-white/60 bg-white/70 px-4 py-3 shadow-lg backdrop-blur-md"
+                      >
+                        <button
+                          type="button"
+                          aria-label="Close"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setHoveredCard(null)
+                            setActiveCard(null)
+                          }}
+                          className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-white/80 text-sm font-semibold text-[#0e2e47] shadow-sm hover:bg-white/90"
+                        >
+                          ×
+                        </button>
+                        <h3 className="truncate text-base font-bold text-[#0e2e47] md:text-lg">{teacher.name}</h3>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {teacher.subjects.slice(0, 3).map((subject) => (
                             <span
                               key={subject}
                               className="inline-flex items-center rounded-full bg-[#e6f7ff] px-3 py-1 text-xs font-medium text-[#00a8e8] transition-transform duration-300 group-hover:-translate-y-0.5"
@@ -210,7 +302,7 @@ export default function TeachersSection() {
                             </span>
                           ))}
                         </div>
-                      </div>
+                      </motion.div>
                     </div>
                   ))}
                 </div>
