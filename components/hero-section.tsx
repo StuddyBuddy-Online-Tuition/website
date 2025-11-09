@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { motion, useAnimation, useInView } from "framer-motion"
 import { Star, ArrowRight, Sparkles, BookOpen, Brain, Calculator, Atom, Languages } from "lucide-react"
 import confetti from "canvas-confetti"
+import PictureCarousel from "@/components/shared/picture-carousel"
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -117,7 +118,7 @@ export default function HeroSection() {
     },
     hover: {
       scale: 1.05,
-      rotate: 5,
+      rotate: 0,
       transition: { duration: 0.3 },
     },
   }
@@ -282,85 +283,15 @@ export default function HeroSection() {
             animate="visible"
             whileHover="hover"
           >
-            <div className="relative h-[350px] w-[350px] sm:h-[400px] sm:w-[400px] md:h-[500px] md:w-[500px]">
-              {/* Interactive logo badges (no background image) */}
-              <motion.button
-                type="button"
-                className="absolute top-[10%] right-[10%] h-16 w-16 cursor-pointer"
-                whileHover={{ scale: 1.15, rotate: 8 }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
-                onClick={(e) => burstAtElement(e.currentTarget)}
-              >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#ffbf00] shadow-md ring-1 ring-black/5">
-                  <Calculator className="h-8 w-8" />
-                </div>
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="absolute bottom-[15%] left-[5%] h-16 w-16 cursor-pointer"
-                whileHover={{ scale: 1.15, rotate: -8 }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, delay: 0.5 }}
-                onClick={(e) => burstAtElement(e.currentTarget)}
-              >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#4cd964] shadow-md ring-1 ring-black/5">
-                  <Atom className="h-8 w-8" />
-                </div>
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="absolute top-[40%] left-[0%] h-16 w-16 cursor-pointer"
-                whileHover={{ scale: 1.15, rotate: 8 }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2, delay: 1 }}
-                onClick={(e) => burstAtElement(e.currentTarget)}
-              >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#00a8e8] shadow-md ring-1 ring-black/5">
-                  <Languages className="h-8 w-8" />
-                </div>
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="absolute top-[15%] left-[15%] h-14 w-14 cursor-pointer"
-                whileHover={{ scale: 1.15, rotate: 6 }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.4, delay: 0.2 }}
-                onClick={(e) => burstAtElement(e.currentTarget)}
-              >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#00a8e8] shadow-md ring-1 ring-black/5">
-                  <BookOpen className="h-7 w-7" />
-                </div>
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="absolute bottom-[10%] right-[20%] h-14 w-14 cursor-pointer"
-                whileHover={{ scale: 1.15, rotate: -6 }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.6, delay: 0.4 }}
-                onClick={(e) => burstAtElement(e.currentTarget)}
-              >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#4cd964] shadow-md ring-1 ring-black/5">
-                  <Brain className="h-7 w-7" />
-                </div>
-              </motion.button>
-
-              <motion.button
-                type="button"
-                className="absolute top-[55%] right-[25%] h-12 w-12 cursor-pointer"
-                whileHover={{ scale: 1.15, rotate: 4 }}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.2, delay: 0.6 }}
-                onClick={(e) => burstAtElement(e.currentTarget)}
-              >
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#ffbf00] shadow-md ring-1 ring-black/5">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-              </motion.button>
+            <div className="relative h-[350px] w-[350px] sm:h-[400px] sm:w-[400px] md:h-[500px] md:w-[500px] my-8 sm:my-10 lg:my-0">
+              <PictureCarousel
+                className="h-full w-full"
+                images={[
+                  { src: '/f1.jpeg', alt: 'Tutor session 1' },
+                  { src: '/f2.jpeg', alt: 'Tutor session 2' },
+                  { src: '/f3.jpeg', alt: 'Tutor session 3' },
+                ]}
+              />
             </div>
           </motion.div>
         </div>
