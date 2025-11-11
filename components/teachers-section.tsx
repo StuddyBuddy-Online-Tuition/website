@@ -1,8 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { motion, useInView } from "framer-motion"
+import type { MouseEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createPortal } from "react-dom"
+import { AnimatePresence, motion, useInView } from "framer-motion"
 import Image from "next/image"
+import { ArrowUpRight } from "lucide-react"
 
 import {
   Pagination,
@@ -94,12 +97,21 @@ export default function TeachersSection() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [activeCard, setActiveCard] = useState<string | null>(null)
   const [hintTeacher, setHintTeacher] = useState<string | null>(null)
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
+  const [modalTriggerRect, setModalTriggerRect] = useState<DOMRect | null>(null)
+  const [isClient, setIsClient] = useState(false)
+  const modalRef = useRef<HTMLDivElement | null>(null)
+  const modalCloseButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if (isInView) {
       setCurrentPage(1)
     }
   }, [isInView])
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -139,6 +151,18 @@ export default function TeachersSection() {
       return prev > maxPage ? maxPage : prev
     })
   }, [totalPages])
+  useEffect(() => {
+    if (!selectedTeacher || typeof document === "undefined") {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [selectedTeacher])
 
   const pages = useMemo<Teacher[][]>(
     () => Array.from({ length: totalPages }, (_, pageIndex) => teachers.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)),
@@ -167,6 +191,91 @@ export default function TeachersSection() {
       // noop if storage/matchMedia unavailable
     }
   }, [pages])
+
+  const closeModal = useCallback(() => {
+    setSelectedTeacher(null)
+    setModalTriggerRect(null)
+  }, [])
+
+  useEffect(() => {
+    if (!selectedTeacher) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        closeModal()
+      }
+      if (event.key === "Tab" && modalRef.current) {
+        const focusableSelectors = [
+          "a[href]",
+          "button:not([disabled])",
+          "textarea:not([disabled])",
+          'input[type="text"]:not([disabled])',
+          'input[type="radio"]:not([disabled])',
+          'input[type="checkbox"]:not([disabled])',
+          "select:not([disabled])",
+        ]
+        const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>(focusableSelectors.join(",")))
+        if (focusable.length === 0) {
+          return
+        }
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        } else if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last.focus()
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [closeModal, selectedTeacher])
+
+  useEffect(() => {
+    if (selectedTeacher && modalCloseButtonRef.current) {
+      modalCloseButtonRef.current.focus()
+    }
+  }, [selectedTeacher])
+
+  const handleViewMore = useCallback(
+    (teacher: Teacher, event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation()
+      const rect = event.currentTarget.getBoundingClientRect()
+      setModalTriggerRect(rect)
+      setSelectedTeacher(teacher)
+    },
+    [],
+  )
+
+  const computeModalOrigins = useCallback(() => {
+    if (!modalTriggerRect || typeof window === "undefined") {
+      return {
+        originX: 0.5,
+        originY: 0.5,
+        offsetX: 0,
+        offsetY: 0,
+      }
+    }
+    const centerX = modalTriggerRect.left + modalTriggerRect.width / 2
+    const centerY = modalTriggerRect.top + modalTriggerRect.height / 2
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const originX = Math.min(Math.max(centerX / viewportWidth, 0), 1)
+    const originY = Math.min(Math.max(centerY / viewportHeight, 0), 1)
+    const offsetX = centerX - viewportWidth / 2
+    const offsetY = centerY - viewportHeight / 2
+    return { originX, originY, offsetX, offsetY }
+  }, [modalTriggerRect])
+
+  const modalOrigins = selectedTeacher ? computeModalOrigins() : { originX: 0.5, originY: 0.5, offsetX: 0, offsetY: 0 }
 
   const getVisiblePages = (total: number, current: number): (number | "ellipsis")[] => {
     if (total <= 7) {
@@ -302,6 +411,18 @@ export default function TeachersSection() {
                             </span>
                           ))}
                         </div>
+                        <div className="mt-4 flex items-center justify-between">
+                          <p className="text-xs text-[#516276] md:text-sm">{teacher.role}</p>
+                          <button
+                            type="button"
+                            onClick={(event) => handleViewMore(teacher, event)}
+                            className="inline-flex items-center gap-1 rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-xs font-semibold text-[#0e2e47] shadow-sm transition-transform duration-300 hover:-translate-y-0.5 hover:bg-white"
+                            aria-label={`View more about ${teacher.name}`}
+                          >
+                            View more
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </motion.div>
                     </div>
                   ))}
@@ -377,6 +498,107 @@ export default function TeachersSection() {
           </Pagination>
         </div>
       </div>
+      {isClient &&
+        createPortal(
+          <AnimatePresence>
+            {selectedTeacher && (
+              <motion.div
+                key="teachers-modal-backdrop"
+                className="fixed inset-0 z-110 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={closeModal}
+              >
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={selectedTeacher.name}
+                  ref={modalRef}
+                  className="relative mx-4 w-full max-w-xl overflow-hidden rounded-3xl border border-[#8fd9ff]/60 bg-white/80 shadow-2xl backdrop-blur-xl md:mx-8 lg:max-w-lg"
+                  initial={{
+                    opacity: 0,
+                    scale: 0.45,
+                    x: modalOrigins.offsetX,
+                    y: modalOrigins.offsetY,
+                    borderRadius: "24px",
+                  }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: 0,
+                    y: 0,
+                    borderRadius: "32px",
+                  }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0.4,
+                    x: modalOrigins.offsetX,
+                    y: modalOrigins.offsetY,
+                    borderRadius: "24px",
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 240,
+                    damping: 22,
+                  }}
+                  style={{
+                    transformOrigin: `${modalOrigins.originX * 100}% ${modalOrigins.originY * 100}%`,
+                  }}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="relative h-[560px] bg-[#f4f9ff] sm:h-[620px] lg:h-[680px]">
+                    <Image
+                      src={selectedTeacher.image || "/placeholder.svg"}
+                      alt={selectedTeacher.name}
+                      fill
+                      className="object-cover"
+                      sizes="(min-width: 1024px) 640px, (min-width: 768px) 540px, 90vw"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/0 to-transparent" />
+                    <button
+                      ref={modalCloseButtonRef}
+                      type="button"
+                      aria-label="Close"
+                      onClick={closeModal}
+                      className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/80 text-lg font-semibold text-[#0e2e47] shadow-sm transition hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00a8e8]/60"
+                    >
+                      ×
+                    </button>
+                    <motion.div
+                      className="absolute inset-x-3 bottom-3 rounded-2xl border border-[#a8e9ff]/70 bg-white/80 p-5 shadow-xl backdrop-blur-xl sm:inset-x-5 sm:bottom-5"
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 20, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <h3 className="text-xl font-bold text-[#0e2e47] md:text-2xl">{selectedTeacher.name}</h3>
+                          <p className="mt-1 text-sm font-medium uppercase tracking-wide text-[#00a8e8]">{selectedTeacher.role}</p>
+                        </div>
+                      </div>
+                      {selectedTeacher.description && (
+                        <p className="mt-3 text-sm text-[#516276] md:text-base">{selectedTeacher.description}</p>
+                      )}
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {selectedTeacher.subjects.map((subject) => (
+                          <span
+                            key={subject}
+                            className="inline-flex items-center rounded-full bg-[#e6f7ff] px-3 py-1 text-xs font-medium text-[#00a8e8]"
+                          >
+                            {subject}
+                          </span>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </section>
   )
 }
