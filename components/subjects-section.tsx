@@ -132,7 +132,7 @@ export default function SubjectsSection() {
 
     const resolvePageSize = () => {
       if (window.matchMedia("(min-width: 1024px)").matches) {
-        return 3
+        return 6
       }
       if (window.matchMedia("(min-width: 768px)").matches) {
         return 2
