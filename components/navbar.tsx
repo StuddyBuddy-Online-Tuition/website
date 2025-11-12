@@ -32,6 +32,9 @@ export default function Navbar() {
           <Link href="/#contact" className="text-[#0e2e47] hover:text-[#00a8e8] font-medium transition-colors">
             Contact
           </Link>
+          <Link href="/timetable" className="text-[#0e2e47] hover:text-[#00a8e8] font-medium transition-colors">
+            Timetable
+          </Link>
         </nav>
         <div className="hidden md:flex">
           <Button asChild className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold">

@@ -10,7 +10,10 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Study Buddy Tutors",
-  description: "Making learning fun and effective for students of all ages"
+  description: "Making learning fun and effective for students of all ages",
+  icons: {
+    icon: "/logo.png",
+  },
 }
 
 export default function RootLayout({
