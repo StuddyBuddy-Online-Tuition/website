@@ -1,77 +1,77 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useMemo } from "react"
 import { useInView } from "framer-motion"
 import { motion, AnimatePresence } from "framer-motion"
 import { CheckCircle, Star, Clock, Sparkles, Target, Lightbulb, Plus } from "lucide-react"
+import type { WhyUs as WhyUsContent } from "@/payload-types"
 
-export default function WhyUsSection() {
+type WhyUsSectionProps = {
+  whyUs: WhyUsContent
+}
+
+const featureStyles = {
+  sparkles: {
+    icon: <Sparkles className="h-10 w-10 text-[#ffbf00]" />,
+    color: "bg-[#fff2cc]",
+    hoverColor: "hover:bg-[#fff2cc]",
+    textColor: "text-[#ffbf00]",
+  },
+  target: {
+    icon: <Target className="h-10 w-10 text-[#00a8e8]" />,
+    color: "bg-[#e6f7ff]",
+    hoverColor: "hover:bg-[#e6f7ff]",
+    textColor: "text-[#00a8e8]",
+  },
+  star: {
+    icon: <Star className="h-10 w-10 text-[#4cd964]" />,
+    color: "bg-[#e6ffea]",
+    hoverColor: "hover:bg-[#e6ffea]",
+    textColor: "text-[#4cd964]",
+  },
+  clock: {
+    icon: <Clock className="h-10 w-10 text-[#ff3b30]" />,
+    color: "bg-[#ffebe9]",
+    hoverColor: "hover:bg-[#ffebe9]",
+    textColor: "text-[#ff3b30]",
+  },
+  check: {
+    icon: <CheckCircle className="h-10 w-10 text-[#00a8e8]" />,
+    color: "bg-[#e6f7ff]",
+    hoverColor: "hover:bg-[#e6f7ff]",
+    textColor: "text-[#00a8e8]",
+  },
+  lightbulb: {
+    icon: <Lightbulb className="h-10 w-10 text-[#ffbf00]" />,
+    color: "bg-[#fff2cc]",
+    hoverColor: "hover:bg-[#fff2cc]",
+    textColor: "text-[#ffbf00]",
+  },
+} as const
+
+export default function WhyUsSection({ whyUs }: WhyUsSectionProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   const [expandedFeature, setExpandedFeature] = useState<number | null>(null)
 
-  const features = [
-    {
-      icon: <Sparkles className="h-10 w-10 text-[#ffbf00]" />,
-      title: "Fun Learning Environment",
-      description: "We make learning enjoyable with interactive lessons and engaging activities.",
-      expandedContent:
-        "Our tutors use games, interactive exercises, and real-world examples to make learning fun and memorable. Students are more engaged when they're enjoying themselves, which leads to better retention and understanding of concepts.",
-      color: "bg-[#fff2cc]",
-      hoverColor: "hover:bg-[#fff2cc]",
-      textColor: "text-[#ffbf00]",
-    },
-    {
-      icon: <Target className="h-10 w-10 text-[#00a8e8]" />,
-      title: "Personalized Approach",
-      description: "Customized learning plans tailored to each student's unique needs and goals.",
-      expandedContent:
-        "We begin with a comprehensive assessment to understand your child's learning style, strengths, and areas for improvement. Then we create a personalized learning plan that adapts as they progress, ensuring they're always appropriately challenged.",
-      color: "bg-[#e6f7ff]",
-      hoverColor: "hover:bg-[#e6f7ff]",
-      textColor: "text-[#00a8e8]",
-    },
-    {
-      icon: <Star className="h-10 w-10 text-[#4cd964]" />,
-      title: "Qualified Tutors",
-      description: "Experienced educators who are experts in their subjects and passionate about teaching.",
-      expandedContent:
-        "Our tutors are not only subject matter experts but also trained in effective teaching methods. They undergo rigorous screening and training to ensure they can connect with students and explain complex concepts in accessible ways.",
-      color: "bg-[#e6ffea]",
-      hoverColor: "hover:bg-[#e6ffea]",
-      textColor: "text-[#4cd964]",
-    },
-    {
-      icon: <Clock className="h-10 w-10 text-[#ff3b30]" />,
-      title: "Flexible Scheduling",
-      description: "Convenient session times that fit into your busy family schedule.",
-      expandedContent:
-        "We understand that families are busy. That's why we offer sessions seven days a week, with early morning and evening options available. Our online tutoring option provides even more flexibility for families on the go.",
-      color: "bg-[#ffebe9]",
-      hoverColor: "hover:bg-[#ffebe9]",
-      textColor: "text-[#ff3b30]",
-    },
-    {
-      icon: <CheckCircle className="h-10 w-10 text-[#00a8e8]" />,
-      title: "Proven Results",
-      description: "Our students consistently show improvement in grades and confidence.",
-      expandedContent:
-        "We track progress carefully and can demonstrate measurable improvements in academic performance. Beyond grades, we see our students develop greater confidence, improved study habits, and a genuine love of learning.",
-      color: "bg-[#e6f7ff]",
-      hoverColor: "hover:bg-[#e6f7ff]",
-      textColor: "text-[#00a8e8]",
-    },
-    {
-      icon: <Lightbulb className="h-10 w-10 text-[#ffbf00]" />,
-      title: "Critical Thinking",
-      description: "We develop problem-solving skills that extend beyond the classroom.",
-      expandedContent:
-        "Rather than just teaching facts, we focus on developing critical thinking and problem-solving skills. These transferable skills help students succeed not just in their current classes, but throughout their academic careers and beyond.",
-      color: "bg-[#fff2cc]",
-      hoverColor: "hover:bg-[#fff2cc]",
-      textColor: "text-[#ffbf00]",
-    },
-  ]
+  const features = useMemo(() => {
+    if (!whyUs.features) return []
+    return [
+      whyUs.features.feature1,
+      whyUs.features.feature2,
+      whyUs.features.feature3,
+      whyUs.features.feature4,
+      whyUs.features.feature5,
+      whyUs.features.feature6,
+    ].map((feature, index) => {
+      const style = featureStyles[feature.icon as keyof typeof featureStyles] ?? featureStyles.sparkles
+      return {
+        ...feature,
+        ...style,
+        key: index,
+      }
+    })
+  }, [whyUs])
 
   const toggleFeature = (index: number) => {
     if (expandedFeature === index) {
@@ -94,11 +94,9 @@ export default function WhyUsSection() {
             transition={{ duration: 0.5 }}
           >
             <div className="inline-block rounded-lg bg-[#fff2cc] px-3 py-1 text-sm text-[#ffbf00]">Why Choose Us</div>
-            <h2 className="text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">
-              What Makes Study Buddy Special
-            </h2>
+            <h2 className="text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">{whyUs.title}</h2>
             <p className="mx-auto max-w-[700px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              We're not just tutors - we're learning partners who make education exciting and effective.
+              {whyUs.description}
             </p>
           </motion.div>
         </div>
@@ -111,7 +109,7 @@ export default function WhyUsSection() {
                 opacity: isInView ? 1 : 0,
                 transition: `all 0.9s cubic-bezier(0.17, 0.55, 0.55, 1) ${0.1 * index}s`,
               }}
-              className={`flex flex-col items-center space-y-4 rounded-lg border bg-white p-6 shadow-sm transition-all ${feature.hoverColor} cursor-pointer`}
+                className={`flex flex-col items-center space-y-4 rounded-lg border bg-white p-6 shadow-sm transition-all ${feature.hoverColor} cursor-pointer`}
               onClick={() => toggleFeature(index)}
               whileHover={{ y: -5 }}
               layout

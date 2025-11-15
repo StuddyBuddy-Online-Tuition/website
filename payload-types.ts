@@ -89,10 +89,12 @@ export interface Config {
   globals: {
     hero: Hero;
     about: About;
+    'why-us': WhyUs;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
+    'why-us': WhyUsSelect<false> | WhyUsSelect<true>;
   };
   locale: null;
   user: User & {
@@ -389,6 +391,55 @@ export interface About {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "why-us".
+ */
+export interface WhyUs {
+  id: string;
+  title: string;
+  description: string;
+  features: {
+    feature1: {
+      icon: 'sparkles' | 'target' | 'star' | 'clock' | 'check' | 'lightbulb';
+      title: string;
+      description: string;
+      expandedContent: string;
+    };
+    feature2: {
+      icon: 'sparkles' | 'target' | 'star' | 'clock' | 'check' | 'lightbulb';
+      title: string;
+      description: string;
+      expandedContent: string;
+    };
+    feature3: {
+      icon: 'sparkles' | 'target' | 'star' | 'clock' | 'check' | 'lightbulb';
+      title: string;
+      description: string;
+      expandedContent: string;
+    };
+    feature4: {
+      icon: 'sparkles' | 'target' | 'star' | 'clock' | 'check' | 'lightbulb';
+      title: string;
+      description: string;
+      expandedContent: string;
+    };
+    feature5: {
+      icon: 'sparkles' | 'target' | 'star' | 'clock' | 'check' | 'lightbulb';
+      title: string;
+      description: string;
+      expandedContent: string;
+    };
+    feature6: {
+      icon: 'sparkles' | 'target' | 'star' | 'clock' | 'check' | 'lightbulb';
+      title: string;
+      description: string;
+      expandedContent: string;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -470,6 +521,69 @@ export interface AboutSelect<T extends boolean = true> {
           | {
               value?: T;
               label?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "why-us_select".
+ */
+export interface WhyUsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  features?:
+    | T
+    | {
+        feature1?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              expandedContent?: T;
+            };
+        feature2?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              expandedContent?: T;
+            };
+        feature3?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              expandedContent?: T;
+            };
+        feature4?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              expandedContent?: T;
+            };
+        feature5?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              expandedContent?: T;
+            };
+        feature6?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              expandedContent?: T;
             };
       };
   updatedAt?: T;

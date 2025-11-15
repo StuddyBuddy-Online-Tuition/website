@@ -11,6 +11,7 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Hero } from './globals/Hero'
 import { About } from './globals/About'
+import { WhyUs } from './globals/WhyUs'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -23,7 +24,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media],
-  globals: [Hero, About],
+  globals: [Hero, About, WhyUs],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

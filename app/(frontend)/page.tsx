@@ -7,9 +7,10 @@ import SubjectsSection from "@/components/subjects-section"
 import ContactSection from "@/components/contact-section"
 import { getHeroContent } from "@/lib/hero"
 import { getAboutContent } from "@/lib/about"
+import { getWhyUsContent } from "@/lib/why-us"
 
 export default async function Home() {
-  const [hero, about] = await Promise.all([getHeroContent(), getAboutContent()])
+  const [hero, about, whyUs] = await Promise.all([getHeroContent(), getAboutContent(), getWhyUsContent()])
 
   return (
     <div className="min-h-screen bg-white">
@@ -20,7 +21,7 @@ export default async function Home() {
           <OrbsBackground className="z-10" />
           <div className="relative z-20">
             <AboutSection about={about} />
-            <WhyUsSection />
+            <WhyUsSection whyUs={whyUs} />
           </div>
         </div>
         <TeachersSection />
