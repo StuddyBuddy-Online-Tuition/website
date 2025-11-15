@@ -93,6 +93,7 @@ export interface Config {
     teachers: Teacher;
     subjects: Subject;
     contact: Contact;
+    footer: Footer;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -101,6 +102,7 @@ export interface Config {
     teachers: TeachersSelect<false> | TeachersSelect<true>;
     subjects: SubjectsSelect<false> | SubjectsSelect<true>;
     contact: ContactSelect<false> | ContactSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
   };
   locale: null;
   user: User & {
@@ -573,6 +575,22 @@ export interface Contact {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: string;
+  brandName: string;
+  description: string;
+  links: {
+    facebookUrl: string;
+    email: string;
+    phone: string;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -859,6 +877,24 @@ export interface ContactSelect<T extends boolean = true> {
         facebookUrl?: T;
         instagramUrl?: T;
         tiktokUrl?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  brandName?: T;
+  description?: T;
+  links?:
+    | T
+    | {
+        facebookUrl?: T;
+        email?: T;
+        phone?: T;
       };
   updatedAt?: T;
   createdAt?: T;

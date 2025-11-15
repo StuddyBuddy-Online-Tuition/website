@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
+import { getFooterContent } from "@/lib/footer"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -18,11 +19,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const footer = await getFooterContent()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -35,7 +38,7 @@ export default function RootLayout({
             {children}
           </div>
           <div className="mt-auto">
-            <Footer />
+            <Footer footer={footer} />
           </div>
         </ThemeProvider>
       </body>

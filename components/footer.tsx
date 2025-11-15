@@ -1,7 +1,22 @@
 import Image from "next/image"
 import Link from "next/link"
+import type { Footer as FooterContent } from "@/payload-types"
 
-export default function Footer() {
+type FooterProps = {
+  footer: FooterContent
+}
+
+export default function Footer({ footer }: FooterProps) {
+  const brandName = footer?.brandName || "StudyBuddy"
+  const description =
+    footer?.description ||
+    "StudyBuddy is your go-to online tutoring platform. Connect with expert tutors who care about your academic. Learn at your own pace, anytime, anywhere. Find your perfect study buddy today!"
+  const facebookUrl = footer?.links?.facebookUrl || "https://www.facebook.com/studybuddysynergy/"
+  const email = footer?.links?.email || "admin@studybuddysynergy.com"
+  const phone = footer?.links?.phone || "+60124997926"
+  const emailHref = email.startsWith("mailto:") ? email : `mailto:${email}`
+  const phoneHref = phone.startsWith("tel:") ? phone : `tel:${phone}`
+
   return (
     <footer className="bg-[#0e2e47] text-white">
       <div className="container px-4 py-8 md:px-6 md:py-10 lg:py-12">
@@ -14,11 +29,11 @@ export default function Footer() {
               height={48}
               className="rounded-full bg-white p-1 shadow-md"
             />
-            <span className="text-xl font-bold tracking-tight">StudyBuddy</span>
+            <span className="text-xl font-bold tracking-tight">{brandName}</span>
           </div>
-          <p className="mt-2 text-gray-300">StudyBuddy is your go-to online tutoring platform. Connect with expert tutors who care about your academic. Learn at your own pace, anytime, anywhere. Find your perfect study buddy today!</p>
+          <p className="mt-2 text-gray-300">{description}</p>
           <div className="mt-4 flex items-center justify-center gap-3">
-            <a aria-label="Facebook" href="https://www.facebook.com/studybuddysynergy/" className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors">
+            <a aria-label="Facebook" href={facebookUrl} className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors" target="_blank" rel="noreferrer">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   fillRule="evenodd"
@@ -27,12 +42,12 @@ export default function Footer() {
                 />
               </svg>
             </a>
-            <a aria-label="Email" href="mailto:admin@studybuddysynergy.com" className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors">
+            <a aria-label="Email" href={emailHref} className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M2 6.75A2.75 2.75 0 014.75 4h14.5A2.75 2.75 0 0122 6.75v10.5A2.75 2.75 0 0119.25 20h-14.5A2.75 2.75 0 012 17.25V6.75zm1.77-.51a.75.75 0 00-1.04 1.08l8 7a.75.75 0 00.98 0l8-7a.75.75 0 00-1.04-1.08L12 13.6 3.77 6.24z" />
               </svg>
             </a>
-            <a aria-label="Phone" href="tel:+60124997926" className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors">
+            <a aria-label="Phone" href={phoneHref} className="rounded-full bg-white/10 p-2.5 text-white ring-1 ring-white/20 hover:bg-white/20 hover:ring-white/30 transition-colors">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M6.62 10.79a15.054 15.054 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.85 21 3 13.15 3 3.5a1 1 0 011-1H7.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.24 1.01l-2.2 2.2z" />
               </svg>
@@ -47,7 +62,7 @@ export default function Footer() {
             rel="noopener noreferrer"
             className="inline-block text-gray-300 hover:text-white underline underline-offset-4"
           >
-            Built and managed by Wan Aqim ©
+            Built by Wan Aqim ©
           </Link>
         </div>
       </div>
