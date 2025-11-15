@@ -10,6 +10,7 @@ import { PackagesModal } from "@/components/register/packages-modal"
 import { Check, BookOpen, User, Phone, Mail, X, Languages, Dna, Atom, Globe, Calculator, FlaskConical } from "lucide-react"
  
 import Script from "next/script"
+import { toWhatsAppHref } from "@/lib/utils"
 
 const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "F1", "F2", "F3", "F4", "F5", "CP"]
 const SUBJECT_OPTIONS = [
@@ -22,7 +23,6 @@ const SUBJECT_OPTIONS = [
   "Kimia",
   "Biology",
   "Physics",
-  "Geography",
   "Prinsip Akaun",
   "Ekonomi",
   "Perniagaan",
@@ -38,6 +38,7 @@ const SUBJECT_ICONS: Record<string, any> = {
   Kimia: FlaskConical,
   Mathematics: Calculator,
   Addmath: Calculator,
+  Science: FlaskConical,
   Sains: FlaskConical,
   Sejarah: Globe,
   "Prinsip Akaun": Calculator,
@@ -135,6 +136,8 @@ export default function RegisterPage() {
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
   const [recaptchaToken, setRecaptchaToken] = useState<string>("")
   const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  // Store created student returned by API for WhatsApp deep link.
+  const [createdStudent, setCreatedStudent] = useState<any | null>(null)
   const recaptchaAction = "register_submit"
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -173,6 +176,9 @@ export default function RegisterPage() {
       })
 
       if (res.ok) {
+        const json = await res.json().catch(() => null)
+        const data = json?.data || null
+        setCreatedStudent(data)
         setSuccess(true)
         formEl.reset()
       } else {
@@ -442,20 +448,20 @@ export default function RegisterPage() {
             </div>
 
             <div className={cardCls + " md:col-span-2"}>
-              <div className="mt-0 flex flex-col items-center justify-between gap-3 sm:flex-row sm:gap-4">
+              <div className="mt-0 flex flex-col items-center gap-3 sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4">
                 <p className="text-sm text-gray-500">We’ll reach out within one business day.</p>
-                <Button type="submit" disabled={submitting} className="w-full sm:w-auto bg-[#00a8e8] hover:bg-[#0077b6]">
+                <Button type="submit" disabled={submitting} className="w-full sm:w-auto sm:row-span-2 sm:self-center bg-[#00a8e8] hover:bg-[#0077b6]">
                   {submitting ? "Submitting..." : "Submit Registration"}
                 </Button>
+                <p className="mt-3 text-xs text-gray-400 text-center sm:mt-0 sm:text-left">
+                  This site is protected by reCAPTCHA and the Google
+                  {" "}
+                  <a className="underline hover:text-[#00a8e8]" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
+                  {" "}and{ " "}
+                  <a className="underline hover:text-[#00a8e8]" href="https://policies.google.com/terms" target="_blank" rel="noreferrer">Terms of Service</a>
+                  {" "}apply.
+                </p>
               </div>
-              <p className="mt-3 text-xs text-gray-400 text-center sm:text-left">
-                This site is protected by reCAPTCHA and the Google
-                {" "}
-                <a className="underline hover:text-[#00a8e8]" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
-                {" "}and{ " "}
-                <a className="underline hover:text-[#00a8e8]" href="https://policies.google.com/terms" target="_blank" rel="noreferrer">Terms of Service</a>
-                {" "}apply.
-              </p>
             </div>
             <input type="hidden" name="recaptcha_token" value={recaptchaToken} />
           </motion.form>
@@ -466,14 +472,76 @@ export default function RegisterPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="grid gap-6 md:grid-cols-2"
           >
-            <div className={cardCls + " md:col-span-2"}>
-              <div className="flex flex-col items-center gap-3 text-center p-4 sm:p-6">
-                <div className="inline-flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-[#4cd964]/20">
-                  <Check className="h-6 w-6 text-[#4cd964]" />
+            <div className={cardCls + " flex flex-col gap-6"}>
+              <div className="flex items-start gap-4">
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#4cd964]/15 shrink-0">
+                  <Check className="h-7 w-7 text-[#4cd964]" />
                 </div>
-                <h2 className="text-lg sm:text-xl font-semibold text-[#0e2e47]">Registration submitted</h2>
-                <p className="text-gray-600 text-sm sm:text-base">We’ll contact you within one business day.</p>
+                <div className="space-y-3">
+                  <h2 className="text-xl font-semibold text-[#0e2e47] tracking-tight">Registration Submitted</h2>
+                  <p className="text-gray-600 text-sm leading-relaxed">Thank you for registering. We’ll review the details and contact you within one business day to confirm the next steps.</p>
+                  {(() => {
+                    const ticketNo = createdStudent?.ticketid || ""
+                    if (!ticketNo) return null
+                    return (
+                      <div className="inline-flex items-center rounded-full bg-[#00a8e8]/10 px-4 py-1.5 text-xs font-medium text-[#0e2e47] ring-1 ring-[#00a8e8]/20">
+                        Ticket: <span className="ml-1 font-semibold tracking-wide">{ticketNo}</span>
+                      </div>
+                    )
+                  })()}
+                </div>
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border bg-white/70 p-4 shadow-sm backdrop-blur-sm">
+                  <h3 className="text-sm font-semibold text-[#0e2e47] mb-2">What happens next?</h3>
+                  <ul className="space-y-2 text-xs text-gray-600">
+                    <li className="flex gap-2"><span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-[#00a8e8]" />Verification & scheduling</li>
+                    <li className="flex gap-2"><span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-[#00a8e8]" />Subject & package confirmation</li>
+                    <li className="flex gap-2"><span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-[#00a8e8]" />Onboarding to learning platform</li>
+                  </ul>
+                </div>
+                <div className="rounded-lg border bg-white/70 p-4 shadow-sm backdrop-blur-sm flex flex-col items-start gap-3">
+                  {(() => {
+                    const parentName = createdStudent?.parentname || "Parent"
+                    const studentName = createdStudent?.full_name || createdStudent?.name || "Student"
+                    const ticketNo = createdStudent?.ticketid || ""
+                    const phone = createdStudent?.parentphone || ""
+                    const href = toWhatsAppHref(phone, parentName, studentName, ticketNo)
+                    if (!href) return null
+                    return (
+                      <>
+                        <h3 className="text-sm font-semibold text-[#0e2e47]">Want it faster?</h3>
+                        <p className="text-xs text-gray-600 leading-relaxed">Send us a quick WhatsApp message to speed up confirmation. Your ticket number is attached automatically.</p>
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Chat on WhatsApp"
+                          className="group inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#1ebe57] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366]/60 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-white">
+                            <path d="M3 21l1.65-3.85a8.5 8.5 0 111.82 1.82L3 21z" />
+                          </svg>
+                          Chat on WhatsApp
+                        </a>
+                      </>
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+            <div className={cardCls + " flex flex-col gap-4"}>
+              <h3 className="text-sm font-semibold text-[#0e2e47]">Registration Summary</h3>
+              <dl className="grid grid-cols-1 gap-3 text-xs text-gray-600">
+                {createdStudent?.full_name && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">Student</dt><dd>{createdStudent.full_name}</dd></div>}
+                {createdStudent?.parentname && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">Parent</dt><dd>{createdStudent.parentname}</dd></div>}
+                {createdStudent?.grade && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">Grade</dt><dd>{createdStudent.grade}</dd></div>}
+                {createdStudent?.school && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">School</dt><dd>{createdStudent.school}</dd></div>}
+                {createdStudent?.parentphone && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">Parent Phone</dt><dd>{createdStudent.parentphone}</dd></div>}
+                {createdStudent?.email && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">Email</dt><dd>{createdStudent.email}</dd></div>}
+                {createdStudent?.ticketid && <div className="flex justify-between"><dt className="font-medium text-[#0e2e47]">Ticket</dt><dd>{createdStudent.ticketid}</dd></div>}
+              </dl>
+              <p className="mt-2 text-[11px] text-gray-400">Keep this page open or note your ticket for reference.</p>
             </div>
           </motion.div>
           )}
@@ -527,5 +595,3 @@ export default function RegisterPage() {
     </>
   )
 }
-
-

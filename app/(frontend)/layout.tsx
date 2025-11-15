@@ -9,10 +9,12 @@ import Footer from "@/components/footer"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Study Buddy Tutors",
-  description: "Making learning fun and effective for students of all ages",
+  title: "StudyBuddy Tutors",
+  description: "Find your perfect study buddy today!",
   icons: {
     icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 }
 

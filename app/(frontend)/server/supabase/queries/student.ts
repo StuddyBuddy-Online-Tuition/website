@@ -1,40 +1,14 @@
 import "server-only";
-import { getSupabaseServerClient } from "@/app/(app)/server/supabase/client";
+import { getSupabaseServerClient } from "@/app/(frontend)/server/supabase/client";
 import {
   toNullIfEmpty,
   normalizeEmail,
-  parseSequentialId,
-  formatSequentialId,
   generateTicketId,
 } from "@/lib/utils";
 import type { CreateStudentInput, CreateStudentResult } from "@/types/students";
 
-// types moved to @/types/students
-
-async function getNextStudentId(): Promise<string> {
-  const supabase = getSupabaseServerClient();
-
-  // Fetch a window of existing IDs and compute the numeric max client-side.
-  // This avoids lexical ordering pitfalls across varying digit widths.
-  const { data, error } = await supabase
-    .from("students")
-    .select("studentid")
-    .like("studentid", "SBF%")
-    .limit(2000);
-
-  if (error) {
-    // Fall back to first ID if we cannot query existing rows.
-    return formatSequentialId(1, "SBF", 4);
-  }
-
-  let maxNumeric = 0;
-  for (const row of data || []) {
-    const suffix = parseSequentialId(row.studentid as string, "SBF");
-    if (suffix !== null && suffix > maxNumeric) maxNumeric = suffix;
-  }
-
-  return formatSequentialId(maxNumeric + 1, "SBF", 4);
-}
+// Student IDs are now hard-coded to "0000" for all newly registered students.
+// Previous sequential ID generation logic has been removed per new requirements.
 
 export async function createStudents(input: CreateStudentInput): Promise<CreateStudentResult> {
   const supabase = getSupabaseServerClient();
@@ -90,41 +64,81 @@ export async function createStudents(input: CreateStudentInput): Promise<CreateS
     payloadBase.modes = input.modes;
   }
 
-  // Only include keys with non-undefined values; allow nulls for optional fields.
-  const buildInsertPayload = async () => {
-    const studentid = await getNextStudentId();
-    return { ...payloadBase, studentid };
-  };
-
-  // Retry on unique violation for `studentid`.
-  const maxAttempts = 3;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const insertPayload = await buildInsertPayload();
-    const { data, error } = await supabase
+  // Determine next 4-digit numeric studentid for new registrations (exclude SBF- or SB-prefixed IDs).
+  let nextStudentId = "0001";
+  try {
+    const { data: existingIds } = await supabase
       .from("students")
-      .insert(insertPayload)
-      .select()
-      .single();
+      .select("studentid")
+      .not("studentid", "ilike", "SBF%")
+      .not("studentid", "ilike", "SB%")
+      .order("studentid", { ascending: false })
+      .limit(1000);
 
-    if (!error) {
-      return { data, error: null };
-    }
+    if (Array.isArray(existingIds)) {
+      const latestNumeric = existingIds
+        .map((r: any) => r?.studentid as string | null)
+        .filter((id): id is string => !!id && /^\d{4}$/.test(id))
+        .sort((a, b) => (a > b ? -1 : a < b ? 1 : 0))[0];
 
-    // 23505 is Postgres unique_violation
-    const code = (error as any)?.code;
-    const isUniqueViolation = code === "23505" || /duplicate key/.test((error as any)?.message || "");
-    if (!isUniqueViolation) {
-      return { data: null, error: (error as any)?.message || "Failed to create student" };
+      if (latestNumeric) {
+        const next = parseInt(latestNumeric, 10) + 1;
+        nextStudentId = String(next).padStart(4, "0");
+      }
     }
-
-    if (attempt === maxAttempts) {
-      return { data: null, error: "Failed to generate a unique student ID. Please retry." };
-    }
+  } catch {
+    // Fallback to "0001" if lookup fails
   }
 
-  return { data: null, error: "Failed to create student" };
+  // First insert attempt
+  let { data, error } = await supabase
+    .from("students")
+    .insert({ ...payloadBase, studentid: nextStudentId })
+    .select()
+    .single();
+
+  // Minimal retry on potential duplicate (e.g., concurrent registration)
+  if (error && (error as any)?.code === "23505") {
+    try {
+      const { data: existingIds } = await supabase
+        .from("students")
+        .select("studentid")
+        .not("studentid", "ilike", "SBF%")
+        .not("studentid", "ilike", "SB%")
+        .order("studentid", { ascending: false })
+        .limit(1000);
+
+      if (Array.isArray(existingIds)) {
+        const latestNumeric = existingIds
+          .map((r: any) => r?.studentid as string | null)
+          .filter((id): id is string => !!id && /^\d{4}$/.test(id))
+          .sort((a, b) => (a > b ? -1 : a < b ? 1 : 0))[0];
+
+        if (latestNumeric) {
+          const next = parseInt(latestNumeric, 10) + 1;
+          nextStudentId = String(next).padStart(4, "0");
+        } else {
+          nextStudentId = "0001";
+        }
+      }
+    } catch {
+      nextStudentId = "0001";
+    }
+
+    const retry = await supabase
+      .from("students")
+      .insert({ ...payloadBase, studentid: nextStudentId })
+      .select()
+      .single();
+    data = retry.data as any;
+    error = retry.error as any;
+  }
+
+  if (error) {
+    return { data: null, error: (error as any)?.message || "Failed to create student" };
+  }
+
+  return { data, error: null };
 }
 
 export type { CreateStudentInput, CreateStudentResult };
-
-
