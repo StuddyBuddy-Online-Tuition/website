@@ -10,14 +10,16 @@ import { getAboutContent } from "@/lib/about"
 import { getWhyUsContent } from "@/lib/why-us"
 import { getTeachersContent } from "@/lib/teachers"
 import { getSubjectsContent } from "@/lib/subjects"
+import { getContactContent } from "@/lib/contact"
 
 export default async function Home() {
-  const [hero, about, whyUs, teachers, subjects] = await Promise.all([
+  const [hero, about, whyUs, teachers, subjects, contact] = await Promise.all([
     getHeroContent(),
     getAboutContent(),
     getWhyUsContent(),
     getTeachersContent(),
     getSubjectsContent(),
+    getContactContent(),
   ])
 
   return (
@@ -34,7 +36,7 @@ export default async function Home() {
         </div>
         <TeachersSection teachers={teachers} />
         <SubjectsSection subjects={subjects} />
-        <ContactSection />
+        <ContactSection contact={contact} />
       </main>
     </div>
   )

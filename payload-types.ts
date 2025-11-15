@@ -92,6 +92,7 @@ export interface Config {
     'why-us': WhyUs;
     teachers: Teacher;
     subjects: Subject;
+    contact: Contact;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -99,6 +100,7 @@ export interface Config {
     'why-us': WhyUsSelect<false> | WhyUsSelect<true>;
     teachers: TeachersSelect<false> | TeachersSelect<true>;
     subjects: SubjectsSelect<false> | SubjectsSelect<true>;
+    contact: ContactSelect<false> | ContactSelect<true>;
   };
   locale: null;
   user: User & {
@@ -549,6 +551,28 @@ export interface Subject {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact".
+ */
+export interface Contact {
+  id: string;
+  title: string;
+  description: string;
+  contactInfo: {
+    phone: string;
+    email: string;
+    location: string;
+  };
+  workingHours: string;
+  followLinks?: {
+    facebookUrl?: string | null;
+    instagramUrl?: string | null;
+    tiktokUrl?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -809,6 +833,32 @@ export interface SubjectsSelect<T extends boolean = true> {
               id?: T;
             };
         popular?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact_select".
+ */
+export interface ContactSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  contactInfo?:
+    | T
+    | {
+        phone?: T;
+        email?: T;
+        location?: T;
+      };
+  workingHours?: T;
+  followLinks?:
+    | T
+    | {
+        facebookUrl?: T;
+        instagramUrl?: T;
+        tiktokUrl?: T;
       };
   updatedAt?: T;
   createdAt?: T;
