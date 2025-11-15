@@ -5,6 +5,7 @@ import path from 'path'
 import { buildConfig, SharpDependency } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -30,6 +31,12 @@ export default buildConfig({
   }),
   sharp: sharp as SharpDependency,
   plugins: [
-    // storage-adapter-placeholder
+    vercelBlobStorage({
+      enabled: true,
+      collections: {
+        media: true,
+      },
+      token: process.env.VERCEL_BLOB_STORAGE_TOKEN || '',
+    }),
   ],
 })
