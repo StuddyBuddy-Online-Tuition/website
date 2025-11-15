@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createStudents } from "@/app/(app)/server/supabase/queries/student";
+import { createStudents } from "@/app/(frontend)/server/supabase/queries/student";
 import type { CreateStudentInput } from "@/types/students";
 
 export async function POST(req: NextRequest) {
