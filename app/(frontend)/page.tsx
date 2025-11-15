@@ -6,9 +6,10 @@ import TeachersSection from "@/components/teachers-section"
 import SubjectsSection from "@/components/subjects-section"
 import ContactSection from "@/components/contact-section"
 import { getHeroContent } from "@/lib/hero"
+import { getAboutContent } from "@/lib/about"
 
 export default async function Home() {
-  const hero = await getHeroContent()
+  const [hero, about] = await Promise.all([getHeroContent(), getAboutContent()])
 
   return (
     <div className="min-h-screen bg-white">
@@ -18,7 +19,7 @@ export default async function Home() {
         <div className="relative overflow-hidden">
           <OrbsBackground className="z-10" />
           <div className="relative z-20">
-            <AboutSection />
+            <AboutSection about={about} />
             <WhyUsSection />
           </div>
         </div>

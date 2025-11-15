@@ -88,9 +88,11 @@ export interface Config {
   };
   globals: {
     hero: Hero;
+    about: About;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
+    about: AboutSelect<false> | AboutSelect<true>;
   };
   locale: null;
   user: User & {
@@ -341,6 +343,52 @@ export interface Hero {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: string;
+  title: string;
+  description: string;
+  featureImage: {
+    image: string | Media;
+    alt: string;
+  };
+  missionPoints: {
+    card1: {
+      title: string;
+      shortDescription: string;
+      longDescription: string;
+    };
+    card2: {
+      title: string;
+      shortDescription: string;
+      longDescription: string;
+    };
+    card3: {
+      title: string;
+      shortDescription: string;
+      longDescription: string;
+    };
+  };
+  stats: {
+    stat1: {
+      value: string;
+      label: string;
+    };
+    stat2: {
+      value: string;
+      label: string;
+    };
+    stat3: {
+      value: string;
+      label: string;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -359,6 +407,70 @@ export interface HeroSelect<T extends boolean = true> {
         image?: T;
         alt?: T;
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  featureImage?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+      };
+  missionPoints?:
+    | T
+    | {
+        card1?:
+          | T
+          | {
+              title?: T;
+              shortDescription?: T;
+              longDescription?: T;
+            };
+        card2?:
+          | T
+          | {
+              title?: T;
+              shortDescription?: T;
+              longDescription?: T;
+            };
+        card3?:
+          | T
+          | {
+              title?: T;
+              shortDescription?: T;
+              longDescription?: T;
+            };
+      };
+  stats?:
+    | T
+    | {
+        stat1?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+            };
+        stat2?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+            };
+        stat3?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;

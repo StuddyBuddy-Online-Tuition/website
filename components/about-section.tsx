@@ -1,55 +1,77 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useMemo } from "react"
 import { useInView } from "framer-motion"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { BookOpen, Users, Award, ChevronRight, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type { About as AboutContent } from "@/payload-types"
 
-export default function AboutSection() {
+type AboutSectionProps = {
+  about: AboutContent
+}
+
+const cardMeta = [
+  {
+    icon: <BookOpen className="h-5 w-5 text-[#00a8e8]" />,
+    color: "bg-[#e6f7ff]",
+    textColor: "text-[#00a8e8]",
+  },
+  {
+    icon: <Users className="h-5 w-5 text-[#ffbf00]" />,
+    color: "bg-[#fff2cc]",
+    textColor: "text-[#ffbf00]",
+  },
+  {
+    icon: <Award className="h-5 w-5 text-[#4cd964]" />,
+    color: "bg-[#e6ffea]",
+    textColor: "text-[#4cd964]",
+  },
+]
+
+export default function AboutSection({ about }: AboutSectionProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   const [activeIndex, setActiveIndex] = useState(0)
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const missionPoints = [
-    {
-      title: "Our Mission",
-      icon: <BookOpen className="h-5 w-5 text-[#00a8e8]" />,
-      description:
-        "To create a supportive learning environment where students can build confidence and achieve academic success.",
-      details:
-        "We prioritize strong fundamentals, consistent practice, and individualized feedback. Our programs are designed to turn small daily wins into lasting academic growth.",
-      color: "bg-[#e6f7ff]",
-      textColor: "text-[#00a8e8]",
-    },
-    {
-      title: "Our Team",
-      icon: <Users className="h-5 w-5 text-[#ffbf00]" />,
-      description: "Experienced educators who are experts in their fields and passionate about helping students learn.",
-      details:
-        "Every tutor is carefully vetted and trained in our coaching playbook—mixing subject expertise with mentorship that builds motivation and healthy study habits.",
-      color: "bg-[#fff2cc]",
-      textColor: "text-[#ffbf00]",
-    },
-    {
-      title: "Our Approach",
-      icon: <Award className="h-5 w-5 text-[#4cd964]" />,
-      description: "Personalized learning plans that adapt to each student's unique needs, learning style, and pace.",
-      details:
-        "We start with a simple assessment, define clear goals with families, and adjust plans weekly based on progress so every session moves the student forward.",
-      color: "bg-[#e6ffea]",
-      textColor: "text-[#4cd964]",
-    },
-  ]
+  const featureImageData = about.featureImage?.image
+  const featureImageUrl = typeof featureImageData === "string" ? null : featureImageData?.url
+  const featureImageAlt =
+    about.featureImage?.alt ||
+    (typeof featureImageData !== "string" ? featureImageData?.alt : undefined) ||
+    "Happy students learning"
+
+  const missionPoints = useMemo(() => {
+    if (!about.missionPoints) return []
+
+    return [about.missionPoints.card1, about.missionPoints.card2, about.missionPoints.card3].map((card, idx) => ({
+      title: card.title,
+      shortDescription: card.shortDescription,
+      longDescription: card.longDescription,
+      icon: cardMeta[idx]?.icon ?? cardMeta[0].icon,
+      color: cardMeta[idx]?.color ?? cardMeta[0].color,
+      textColor: cardMeta[idx]?.textColor ?? cardMeta[0].textColor,
+    }))
+  }, [about])
+
+  const stats = useMemo(() => {
+    if (!about.stats) return []
+    return [about.stats.stat1, about.stats.stat2, about.stats.stat3]
+  }, [about])
+
+  const hasCards = missionPoints.length > 0
+  const safeActiveIndex = hasCards ? activeIndex % missionPoints.length : 0
 
   const nextSlide = () => {
+    if (!hasCards) return
     setIsExpanded(false)
     setActiveIndex((prev) => (prev === missionPoints.length - 1 ? 0 : prev + 1))
   }
 
   const prevSlide = () => {
+    if (!hasCards) return
     setIsExpanded(false)
     setActiveIndex((prev) => (prev === 0 ? missionPoints.length - 1 : prev - 1))
   }
@@ -65,10 +87,9 @@ export default function AboutSection() {
             transition={{ duration: 0.5 }}
           >
             <div className="inline-block rounded-lg bg-[#e6f7ff] px-3 py-1 text-sm text-[#00a8e8]">About Us</div>
-            <h2 className="text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">Who We Are</h2>
+            <h2 className="text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">{about.title}</h2>
             <p className="mx-auto max-w-[700px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Study Buddy is a team of passionate educators dedicated to making learning enjoyable and effective for
-              students of all ages.
+              {about.description}
             </p>
           </motion.div>
         </div>
@@ -83,7 +104,7 @@ export default function AboutSection() {
             whileHover={{ scale: 1.03 }}
             transition={{ duration: 0.3 }}
           >
-            <Image src="/about-image.webp" alt="Happy students learning" fill className="object-cover" />
+            <Image src={featureImageUrl ?? "/about-image.webp"} alt={featureImageAlt} fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-tr from-[#0e2e47]/20 to-transparent" />
 
             {/* Interactive overlay */}
@@ -107,6 +128,7 @@ export default function AboutSection() {
                   size="icon"
                   onClick={prevSlide}
                   className="rounded-full border-[#00a8e8] text-[#00a8e8] hover:bg-[#e6f7ff]"
+                  disabled={!hasCards}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -119,7 +141,7 @@ export default function AboutSection() {
                         setIsExpanded(false)
                       }}
                       className={`h-2 w-2 rounded-full transition-colors ${
-                        index === activeIndex ? "bg-[#00a8e8]" : "bg-gray-300"
+                        index === safeActiveIndex ? "bg-[#00a8e8]" : "bg-gray-300"
                       }`}
                     />
                   ))}
@@ -129,6 +151,7 @@ export default function AboutSection() {
                   size="icon"
                   onClick={nextSlide}
                   className="rounded-full border-[#00a8e8] text-[#00a8e8] hover:bg-[#e6f7ff]"
+                  disabled={!hasCards}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -136,55 +159,59 @@ export default function AboutSection() {
 
               {/* Carousel content with expandable card (hover or click) */}
               <div className="relative min-h-[200px]">
-                <motion.div
-                  key={activeIndex}
-                  layout
-                  className={`flex flex-col p-6 rounded-lg border ${missionPoints[activeIndex].color}`}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                  onMouseEnter={() => setIsExpanded(true)}
-                  onMouseLeave={() => setIsExpanded(false)}
-                  onClick={() => setIsExpanded((prev) => !prev)}
-                >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${missionPoints[activeIndex].color}`}
-                    >
-                      {missionPoints[activeIndex].icon}
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-bold text-[#0e2e47]">
-                        {missionPoints[activeIndex].title}
-                      </h3>
-                      <p className="text-gray-600">{missionPoints[activeIndex].description}</p>
-                    </div>
-                  </div>
-                  <AnimatePresence initial={false}>
-                    {isExpanded && (
-                      <motion.p
-                        key="details"
-                        className="mt-4 text-gray-600"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                {hasCards ? (
+                  <motion.div
+                    key={safeActiveIndex}
+                    layout
+                    className={`flex flex-col p-6 rounded-lg border ${missionPoints[safeActiveIndex]?.color ?? "bg-[#e6f7ff]"}`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    onMouseEnter={() => setIsExpanded(true)}
+                    onMouseLeave={() => setIsExpanded(false)}
+                    onClick={() => setIsExpanded((prev) => !prev)}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                          missionPoints[safeActiveIndex]?.color ?? "bg-[#e6f7ff]"
+                        }`}
                       >
-                        {missionPoints[activeIndex].details}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+                        {missionPoints[safeActiveIndex]?.icon}
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-bold text-[#0e2e47]">
+                          {missionPoints[safeActiveIndex]?.title}
+                        </h3>
+                        <p className="text-gray-600">{missionPoints[safeActiveIndex]?.shortDescription}</p>
+                      </div>
+                    </div>
+                    <AnimatePresence initial={false}>
+                      {isExpanded && (
+                        <motion.p
+                          key="details"
+                          className="mt-4 text-gray-600"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {missionPoints[safeActiveIndex]?.longDescription}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ) : (
+                  <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed border-gray-200">
+                    <p className="text-sm text-gray-500">Content unavailable</p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Interactive facts */}
             <div className="grid grid-cols-3 gap-4 mt-2">
-              {[
-                { value: "10+", label: "Years Experience" },
-                { value: "95%", label: "Success Rate" },
-                { value: "24/7", label: "Support" },
-              ].map((stat, index) => (
+              {stats.map((stat, index) => (
                 <motion.div
                   key={index}
                   className="flex flex-col items-center justify-center p-4 rounded-lg bg-[#f8fafc] hover:bg-[#e6f7ff] transition-colors cursor-pointer"
