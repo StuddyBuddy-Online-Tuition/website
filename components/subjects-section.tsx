@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useRef, useState, useEffect } from "react"
+import type { ReactNode } from "react"
 import { useInView } from "framer-motion"
 import { motion, AnimatePresence } from "framer-motion"
 import { Calculator, Atom, BookOpen, Globe, Code, Music, Palette, Languages, ChevronRight, Check } from "lucide-react"
@@ -17,111 +18,84 @@ import {
 } from "@/components/ui/pagination"
 import { ButtonGroup } from "@/components/ui/button-group"
 import { SubjectsPackages } from "@/components/subjects-packages"
+import type { Subject as SubjectsContent } from "@/payload-types"
 
-export default function SubjectsSection() {
+type SubjectsSectionProps = {
+  subjects: SubjectsContent
+}
+
+const iconComponents = {
+  book: BookOpen,
+  languages: Languages,
+  calculator: Calculator,
+  atom: Atom,
+  globe: Globe,
+  code: Code,
+  music: Music,
+  palette: Palette,
+} as const
+
+type IconKey = keyof typeof iconComponents
+const DEFAULT_HIGHLIGHTS = ['One-on-one tutoring', 'Homework help', 'Test preparation']
+type CMSSingleSubject = {
+  title: string
+  icon: string
+  shortDescription: string
+  highlights?: { text: string; id?: string | null }[] | null
+}
+type CMSCategories = {
+  primary?: { subjects?: CMSSingleSubject[] | null } | null
+  lowerSecondary?: { subjects?: CMSSingleSubject[] | null } | null
+  upperSecondary?: { subjects?: CMSSingleSubject[] | null } | null
+} | null
+type PackageEntry = NonNullable<SubjectsContent["packages"]>[number]
+type SubjectCard = {
+  title: string
+  description: string
+  highlights: { text: string; id?: string | null }[]
+  icon: ReactNode
+}
+
+export default function SubjectsSection({ subjects }: SubjectsSectionProps) {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("primary")
-  const [hoveredSubject, setHoveredSubject] = useState<number | null>(null)
+  const [hoveredSubjectKey, setHoveredSubjectKey] = useState<string | null>(null)
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [pageSize, setPageSize] = useState(3)
   const [currentPage, setCurrentPage] = useState(1)
   const [viewMode, setViewMode] = useState<"subjects" | "package">("subjects")
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null)
 
-  const subjectCategories = {
-    primary: [
-      { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Personalized tutoring in English." },
-      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Bantuan pembelajaran Bahasa Malaysia." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Core math skills and problem solving." },
-      { icon: <Atom className="h-6 w-6" />, name: "Science", description: "Foundational science concepts." },
-      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Introductory history and timelines." },
-    ],
-    lowerSecondary: [
-      { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Strengthen language skills and comprehension." },
-      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Pengukuhan Bahasa Malaysia untuk menengah rendah." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Algebraic thinking and applied problem solving." },
-      { icon: <Atom className="h-6 w-6" />, name: "Science", description: "Integrated science: physics, chemistry, biology foundations." },
-      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Kurikulum sejarah menengah rendah." },
-      { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography basics." },
-    ],
-    upperSecondary: [
-      { icon: <BookOpen className="h-6 w-6" />, name: "English", description: "Advanced English skills and exam prep." },
-      { icon: <Languages className="h-6 w-6" />, name: "Bahasa Malaysia", description: "Persediaan peperiksaan dan karangan." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Mathematics", description: "Comprehensive mathematics tutoring." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Addmath", description: "Additional mathematics topics and techniques." },
-      { icon: <Atom className="h-6 w-6" />, name: "Physics", description: "Physics fundamentals and calculations." },
-      { icon: <Atom className="h-6 w-6" />, name: "Chemistry", description: "Chemistry principles and problem solving." },
-      { icon: <Atom className="h-6 w-6" />, name: "Biology", description: "Biology concepts and exam strategies." },
-      { icon: <Globe className="h-6 w-6" />, name: "Sejarah", description: "Malaysian and world history topics." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Prinsip Akaun", description: "Principles of accounting." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Ekonomi", description: "Economics theory and practice." },
-      { icon: <Calculator className="h-6 w-6" />, name: "Perniagaan", description: "Business studies essentials." },
-      { icon: <Globe className="h-6 w-6" />, name: "Geography", description: "Physical and human geography." },
-    ],
-  }
+  const subjectCategories = useMemo<Record<"primary" | "lowerSecondary" | "upperSecondary", SubjectCard[]>>(() => {
+    const categories = (subjects.categories as CMSCategories) ?? null
 
-  const PACKAGES = [
-    {
-      id: "pcs-s4-6",
-      groupName: "Pakej Cuti Sekolah",
-      tier: "Standard 4,5,6",
-      normalPriceMonthly: 99.9,
-      promoPriceMonthly: 99.9,
-      promoStart: "2025-12-03",
-      promoEnd: "2026-01-10",
-      popular: false,
-      subjects: [
-        "Bahasa Malaysia",
-        "English",
-        "Mathematics",
-        "Science",
-        "Sejarah",
-      ],
-    },
-    {
-      id: "pcs-f1-3",
-      groupName: "Pakej Cuti Sekolah",
-      tier: "Form 1,2,3",
-      normalPriceMonthly: 129.9,
-      promoPriceMonthly: 129.9,
-      promoStart: "2025-12-03",
-      promoEnd: "2026-01-10",
-      popular: false,
-      subjects: [
-        "Bahasa Malaysia",
-        "English",
-        "Mathematics",
-        "Science",
-        "Sejarah",
-      ],
-    },
-    {
-      id: "pcs-f4-5",
-      groupName: "Pakej Cuti Sekolah",
-      tier: "Form 4,5",
-      normalPriceMonthly: 149.9,
-      promoPriceMonthly: 149.9,
-      promoStart: "2025-12-03",
-      promoEnd: "2026-01-10",
-      popular: true,
-      subjects: [
-        "Bahasa Malaysia",
-        "English",
-        "Mathematics",
-        "Sejarah",
-        "Kimia",
-        "Biology",
-        "Physics",
-        "Addmath",
-        "Science",
-        "Prinsip Akaun",
-        "Ekonomi",
-        "Perniagaan",
-      ],
-    },
-  ]
+    const mapSubjects = (list?: CMSSingleSubject[] | null) => {
+      const entries: CMSSingleSubject[] = Array.isArray(list) ? list : []
+      return entries.map((subject) => {
+        const IconComponent = iconComponents[(subject.icon as IconKey) || "book"] || BookOpen
+        const highlightList: { text: string; id?: string | null }[] =
+          Array.isArray(subject.highlights) && subject.highlights.length > 0
+            ? (subject.highlights as { text: string; id?: string | null }[])
+            : DEFAULT_HIGHLIGHTS.map((text) => ({ text }))
+        return {
+          title: subject.title,
+          description: subject.shortDescription,
+          highlights: highlightList,
+          icon: <IconComponent className="h-6 w-6" />,
+        }
+      })
+    }
+
+    return {
+      primary: mapSubjects(categories?.primary?.subjects),
+      lowerSecondary: mapSubjects(categories?.lowerSecondary?.subjects),
+      upperSecondary: mapSubjects(categories?.upperSecondary?.subjects),
+    }
+  }, [subjects])
+
+  const packagesData: PackageEntry[] = Array.isArray(subjects.packages) ? (subjects.packages as PackageEntry[]) : []
 
   
 
@@ -227,10 +201,10 @@ export default function SubjectsSection() {
           >
             <div className="inline-block rounded-lg bg-[#e6f7ff] px-3 py-1 text-sm text-[#00a8e8]">Our Subjects</div>
             <h2 className="text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">
-              What We Teach
+              {subjects.title}
             </h2>
             <p className="mx-auto max-w-[700px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              We offer tutoring in a wide range of subjects for students of all ages and levels.
+              {subjects.description}
             </p>
           </motion.div>
         </div>
@@ -312,18 +286,18 @@ export default function SubjectsSection() {
                           .slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
                           .map((subject, index) => (
                             <motion.div
-                              key={`${subject.name}-${index}`}
+                              key={`${subject.title}-${index}`}
                               style={{
                                 transform: isInView && activeTab === level ? "none" : "translateY(20px)",
                                 opacity: isInView && activeTab === level ? 1 : 0,
                                 transition: `all 0.5s cubic-bezier(0.17, 0.55, 0.55, 1) ${0.1 * index}s`,
                               }}
                               className={`flex flex-col space-y-3 rounded-xl border bg-white p-6 shadow-sm transition-all ${
-                                hoveredSubject === index ? "shadow-lg" : "hover:shadow-md"
-                              } ${selectedSubjects.includes(subject.name) ? "border-[#00a8e8] border-2" : ""}`}
-                              onMouseEnter={() => setHoveredSubject(index)}
-                              onMouseLeave={() => setHoveredSubject(null)}
-                              onClick={() => toggleSubjectSelection(subject.name)}
+                                hoveredSubjectKey === `${level}-${pageIndex}-${index}` ? "shadow-lg" : "hover:shadow-md"
+                              } ${selectedSubjects.includes(subject.title) ? "border-[#00a8e8] border-2" : ""}`}
+                              onMouseEnter={() => setHoveredSubjectKey(`${level}-${pageIndex}-${index}`)}
+                              onMouseLeave={() => setHoveredSubjectKey(null)}
+                              onClick={() => toggleSubjectSelection(subject.title)}
                             >
                               <div className="relative">
                                 <motion.div
@@ -334,7 +308,7 @@ export default function SubjectsSection() {
                                   {subject.icon}
                                 </motion.div>
 
-                                {selectedSubjects.includes(subject.name) && (
+                                {selectedSubjects.includes(subject.title) && (
                                   <motion.div
                                     className="absolute -top-2 -right-2 bg-[#00a8e8] text-white rounded-full p-1"
                                     initial={{ scale: 0 }}
@@ -346,11 +320,11 @@ export default function SubjectsSection() {
                                 )}
                               </div>
 
-                              <h3 className="text-xl font-bold text-[#0e2e47]">{subject.name}</h3>
+                              <h3 className="text-xl font-bold text-[#0e2e47]">{subject.title}</h3>
                               <p className="text-gray-600">{subject.description}</p>
 
                               <AnimatePresence>
-                                {hoveredSubject === index && (
+                                {hoveredSubjectKey === `${level}-${pageIndex}-${index}` && (
                                   <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
@@ -359,18 +333,12 @@ export default function SubjectsSection() {
                                     className="overflow-hidden"
                                   >
                                     <ul className="text-sm text-gray-600 space-y-1 mt-2">
-                                      <li className="flex items-center">
-                                        <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
-                                        <span>One-on-one tutoring</span>
-                                      </li>
-                                      <li className="flex items-center">
-                                        <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
-                                        <span>Homework help</span>
-                                      </li>
-                                      <li className="flex items-center">
-                                        <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
-                                        <span>Test preparation</span>
-                                      </li>
+                                      {(subject.highlights ?? []).map((highlight, highlightIndex) => (
+                                        <li key={`${subject.title}-highlight-${highlightIndex}`} className="flex items-center">
+                                          <Check className="h-3 w-3 text-[#00a8e8] mr-2" />
+                                          <span>{highlight.text}</span>
+                                        </li>
+                                      ))}
                                     </ul>
                                   </motion.div>
                                 )}
@@ -382,7 +350,7 @@ export default function SubjectsSection() {
                               >
                                 Learn more
                                 <motion.span
-                                  animate={hoveredSubject === index ? { x: 5 } : { x: 0 }}
+                                  animate={hoveredSubjectKey === `${level}-${pageIndex}-${index}` ? { x: 5 } : { x: 0 }}
                                   transition={{ duration: 0.2 }}
                                 >
                                   <ChevronRight className="ml-1 h-4 w-4" />
@@ -506,7 +474,7 @@ export default function SubjectsSection() {
           </Tabs>
           ) : (
             <SubjectsPackages
-              packages={PACKAGES as any}
+              packages={packagesData}
               selectedPackageId={selectedPackageId}
               setSelectedPackageId={setSelectedPackageId}
               setSelectedSubjects={setSelectedSubjects}

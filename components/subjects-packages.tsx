@@ -13,18 +13,9 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { useRouter } from "next/navigation"
+import type { Subject as SubjectsContent } from "@/payload-types"
 
-type StudyPackage = {
-  id: string
-  groupName: string
-  tier: string
-  normalPriceMonthly?: number
-  promoPriceMonthly?: number
-  promoStart?: string
-  promoEnd?: string
-  popular?: boolean
-  subjects: string[]
-}
+type StudyPackage = NonNullable<SubjectsContent["packages"]>[number]
 
 type SubjectsPackagesProps = {
   packages: StudyPackage[]
@@ -32,25 +23,6 @@ type SubjectsPackagesProps = {
   setSelectedPackageId: (id: string) => void
   setSelectedSubjects: (subjects: string[]) => void
   isInView: boolean
-}
-
-function isPromoActive(pkg: StudyPackage, now: Date = new Date()) {
-  if (!pkg?.promoStart || !pkg?.promoEnd) return false
-  const start = new Date(pkg.promoStart)
-  const end = new Date(pkg.promoEnd)
-  return now >= start && now <= end
-}
-
-function getPackagePricing(pkg: StudyPackage) {
-  const promo = isPromoActive(pkg)
-  const normalPrice = typeof pkg.normalPriceMonthly === "number" ? pkg.normalPriceMonthly : (pkg as any).priceMonthly
-  const promoPrice = typeof pkg.promoPriceMonthly === "number" ? pkg.promoPriceMonthly : normalPrice
-  return {
-    isPromo: promo && promoPrice !== undefined,
-    price: promo ? promoPrice : normalPrice,
-    normalPrice,
-    promoPrice,
-  }
 }
 
 export function SubjectsPackages(props: SubjectsPackagesProps) {
@@ -119,10 +91,11 @@ export function SubjectsPackages(props: SubjectsPackagesProps) {
         {packages
           .slice(pageIndex * pageSize, (pageIndex + 1) * pageSize)
           .map((pkg, idx) => {
-          const pricing = getPackagePricing(pkg)
+          const price = pkg.price ?? 0
           const selected = selectedPackageId === pkg.id
-          const visible = pkg.subjects.slice(0, 6)
-          const extra = Math.max(0, pkg.subjects.length - visible.length)
+          const subjectLabels = pkg.subjects?.map((s) => s.label) ?? []
+          const visible = subjectLabels.slice(0, 6)
+          const extra = Math.max(0, subjectLabels.length - visible.length)
           return (
             <motion.div
               key={pkg.id}
@@ -144,26 +117,23 @@ export function SubjectsPackages(props: SubjectsPackagesProps) {
                 <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#00a8e8]/20 blur-3xl" />
               </div>
 
-              {pkg.popular && (
+              {pkg.popular ? (
                 <div className="absolute right-4 top-4">
                   <Badge className="bg-[#ffbf00] text-[#0e2e47] border-[#ffbf00]">Popular</Badge>
                 </div>
-              )}
+              ) : null}
 
               <div>
-                <div className="text-sm text-[#00a8e8]">{pkg.groupName}</div>
-                <h3 className="text-xl font-bold text-[#0e2e47]">{pkg.tier}</h3>
+                <div className="text-sm text-[#00a8e8]">{pkg.name}</div>
+                <h3 className="text-xl font-bold text-[#0e2e47]">{pkg.grade}</h3>
               </div>
 
               {/* Pricing row */}
               <div className="flex items-baseline gap-3">
                 <div className="flex items-baseline gap-1">
                   <span className="text-sm text-[#0e2e47]/70">RM</span>
-                  <span className="text-3xl font-extrabold tracking-tight text-[#0e2e47]">{pricing.price.toFixed(2)}</span>
+                  <span className="text-3xl font-extrabold tracking-tight text-[#0e2e47]">{price.toFixed(2)}</span>
                 </div>
-                {pricing.isPromo ? (
-                  <div className="text-sm text-gray-500 line-through">RM {pricing.normalPrice.toFixed(2)}</div>
-                ) : null}
                 <span className="ml-auto text-xs text-gray-500">per month</span>
               </div>
 
@@ -191,7 +161,7 @@ export function SubjectsPackages(props: SubjectsPackagesProps) {
                   className={selected ? "w-full bg-[#4cd964] hover:bg-[#39c553]" : "w-full bg-[#00a8e8] hover:bg-[#0077b6]"}
                   onClick={() => {
                     setSelectedPackageId(pkg.id)
-                    setSelectedSubjects(pkg.subjects)
+                    setSelectedSubjects(subjectLabels)
                   }}
                 >
                   {selected ? "Selected" : "Select Package"}
@@ -294,19 +264,22 @@ export function SubjectsPackages(props: SubjectsPackagesProps) {
         >
           <p className="mb-4 text-gray-600">
             Selected package:
-            <span className="font-medium text-[#00a8e8]"> {packages.find((p) => p.id === selectedPackageId)?.tier}</span>
-            {" "}with {packages.find((p) => p.id === selectedPackageId)?.subjects.length || 0} subject
-            {(packages.find((p) => p.id === selectedPackageId)?.subjects.length || 0) !== 1 ? "s" : ""}.
+            <span className="font-medium text-[#00a8e8]">
+              {" "}
+              {packages.find((p) => p.id === selectedPackageId)?.grade}
+            </span>{" "}
+            with {packages.find((p) => p.id === selectedPackageId)?.subjects?.length || 0} subject
+            {(packages.find((p) => p.id === selectedPackageId)?.subjects?.length || 0) !== 1 ? "s" : ""}.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button
               className="bg-[#00a8e8] hover:bg-[#0077b6]"
               onClick={() => {
                 const selected = packages.find((p) => p.id === selectedPackageId)
-                const subjects = selected ? selected.subjects : []
+                const subjects = selected ? selected.subjects?.map((s) => s.label) ?? [] : []
                 const q = subjects.slice(0, 10).map((s) => encodeURIComponent(s)).join(",")
-                const pkgGroup = selected ? encodeURIComponent(selected.groupName) : ""
-                const pkgTier = selected ? encodeURIComponent(selected.tier) : ""
+                const pkgGroup = selected ? encodeURIComponent(selected.name) : ""
+                const pkgTier = selected ? encodeURIComponent(selected.grade) : ""
                 const pkgParams = selected ? `&package_groupName=${pkgGroup}&package_tier=${pkgTier}` : ""
                 router.push(`/?package_id=${encodeURIComponent(selectedPackageId)}&subjects=${q}${pkgParams}#contact`)
               }}

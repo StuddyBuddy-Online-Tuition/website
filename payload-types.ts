@@ -91,12 +91,14 @@ export interface Config {
     about: About;
     'why-us': WhyUs;
     teachers: Teacher;
+    subjects: Subject;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
     'why-us': WhyUsSelect<false> | WhyUsSelect<true>;
     teachers: TeachersSelect<false> | TeachersSelect<true>;
+    subjects: SubjectsSelect<false> | SubjectsSelect<true>;
   };
   locale: null;
   user: User & {
@@ -471,6 +473,82 @@ export interface Teacher {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subjects".
+ */
+export interface Subject {
+  id: string;
+  title: string;
+  description: string;
+  categories?: {
+    primary?: {
+      subjects?:
+        | {
+            title: string;
+            icon: 'book' | 'languages' | 'calculator' | 'atom' | 'globe' | 'code' | 'music' | 'palette';
+            shortDescription: string;
+            highlights?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    lowerSecondary?: {
+      subjects?:
+        | {
+            title: string;
+            icon: 'book' | 'languages' | 'calculator' | 'atom' | 'globe' | 'code' | 'music' | 'palette';
+            shortDescription: string;
+            highlights?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    upperSecondary?: {
+      subjects?:
+        | {
+            title: string;
+            icon: 'book' | 'languages' | 'calculator' | 'atom' | 'globe' | 'code' | 'music' | 'palette';
+            shortDescription: string;
+            highlights?:
+              | {
+                  text: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  packages?:
+    | {
+        id: string;
+        name: string;
+        grade: string;
+        price: number;
+        subjects?:
+          | {
+              label: string;
+              id?: string | null;
+            }[]
+          | null;
+        popular?: boolean | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -647,6 +725,90 @@ export interface TeachersSelect<T extends boolean = true> {
               alt?: T;
             };
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subjects_select".
+ */
+export interface SubjectsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  categories?:
+    | T
+    | {
+        primary?:
+          | T
+          | {
+              subjects?:
+                | T
+                | {
+                    title?: T;
+                    icon?: T;
+                    shortDescription?: T;
+                    highlights?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+            };
+        lowerSecondary?:
+          | T
+          | {
+              subjects?:
+                | T
+                | {
+                    title?: T;
+                    icon?: T;
+                    shortDescription?: T;
+                    highlights?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+            };
+        upperSecondary?:
+          | T
+          | {
+              subjects?:
+                | T
+                | {
+                    title?: T;
+                    icon?: T;
+                    shortDescription?: T;
+                    highlights?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+            };
+      };
+  packages?:
+    | T
+    | {
+        id?: T;
+        name?: T;
+        grade?: T;
+        price?: T;
+        subjects?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        popular?: T;
       };
   updatedAt?: T;
   createdAt?: T;
