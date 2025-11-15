@@ -1,5 +1,5 @@
 import "server-only";
-import { getSupabaseServerClient } from "@/app/server/supabase/client";
+import { getSupabaseServerClient } from "@/app/(app)/server/supabase/client";
 import {
   toNullIfEmpty,
   normalizeEmail,

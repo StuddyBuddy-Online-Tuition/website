@@ -1,5 +1,5 @@
 "server-only";
-import { getSupabaseServerClient } from "@/app/server/supabase/client";
+import { getSupabaseServerClient } from "@/app/(app)/server/supabase/client";
 import { Subject } from "@/types/subject";
 import { DbSubject } from "@/types/db";
 

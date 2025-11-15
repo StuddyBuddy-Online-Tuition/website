@@ -1,6 +1,6 @@
 import MasterTimetable from "@/components/timetable/master-timetable"
-import { getAllSubjects } from "@/app/server/supabase/queries/subjects"
-import { getAllTimeslots } from "@/app/server/supabase/queries/timeslots"
+import { getAllSubjects } from "@/app/(app)/server/supabase/queries/subjects"
+import { getAllTimeslots } from "@/app/(app)/server/supabase/queries/timeslots"
 
 export default async function MasterSubjectsTimetablePage() {
   const subjects = await getAllSubjects()
