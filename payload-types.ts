@@ -86,8 +86,12 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    hero: Hero;
+  };
+  globalsSelect: {
+    hero: HeroSelect<false> | HeroSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -145,7 +149,7 @@ export interface User {
  */
 export interface Media {
   id: string;
-  alt: string;
+  alt?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -311,6 +315,54 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hero".
+ */
+export interface Hero {
+  id: string;
+  description: string;
+  metrics: {
+    parents: number;
+    students: number;
+    subjects: number;
+    tutors: number;
+  };
+  carousel?:
+    | {
+        image: string | Media;
+        alt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hero_select".
+ */
+export interface HeroSelect<T extends boolean = true> {
+  description?: T;
+  metrics?:
+    | T
+    | {
+        parents?: T;
+        students?: T;
+        subjects?: T;
+        tutors?: T;
+      };
+  carousel?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
