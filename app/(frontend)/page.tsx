@@ -5,12 +5,15 @@ import OrbsBackground from "@/components/shared/orbs-background"
 import TeachersSection from "@/components/teachers-section"
 import SubjectsSection from "@/components/subjects-section"
 import ContactSection from "@/components/contact-section"
+import { getHeroContent } from "@/lib/hero"
 
-export default function Home() {
+export default async function Home() {
+  const hero = await getHeroContent()
+
   return (
     <div className="min-h-screen bg-white">
       <main>
-        <HeroSection />
+        <HeroSection hero={hero} />
         {/* Shared orbs background wrapper for About + Why Us sections */}
         <div className="relative overflow-hidden">
           <OrbsBackground className="z-10" />
@@ -20,7 +23,7 @@ export default function Home() {
           </div>
         </div>
         <TeachersSection />
-       <SubjectsSection /> 
+        <SubjectsSection />
         <ContactSection />
       </main>
     </div>

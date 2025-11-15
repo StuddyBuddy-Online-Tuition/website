@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache'
 import type { GlobalConfig } from 'payload'
 
 export const Hero: GlobalConfig = {
@@ -5,11 +6,19 @@ export const Hero: GlobalConfig = {
   access: {
     read: () => true,
   },
+  hooks: {
+    afterChange: [
+      async () => {
+        revalidatePath('/')
+      },
+    ],
+  },
   fields: [
     {
       name: 'description',
       type: 'textarea',
       required: true,
+      maxLength: 320,
       defaultValue:
         'Personalized tutoring that helps students excel in their studies while having a great time learning.',
     },

@@ -8,8 +8,13 @@ import { motion, useAnimation, useInView } from "framer-motion"
 import { Star, ArrowRight, Sparkles, BookOpen, Brain, Calculator, Atom, Languages } from "lucide-react"
 import confetti from "canvas-confetti"
 import PictureCarousel from "@/components/shared/picture-carousel"
+import type { Hero as HeroContent } from "@/payload-types"
 
-export default function HeroSection() {
+type HeroSectionProps = {
+  hero: HeroContent
+}
+
+export default function HeroSection({ hero }: HeroSectionProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [hoverButton, setHoverButton] = useState(false)
   const confettiRef = useRef<HTMLButtonElement>(null)
@@ -123,6 +128,37 @@ export default function HeroSection() {
     },
   }
 
+  const stats = [
+    { label: "Students Helped", value: hero.metrics.students, color: "#00a8e8" },
+    { label: "Subjects Covered", value: hero.metrics.subjects, color: "#ffbf00" },
+    { label: "Qualified Tutors", value: hero.metrics.tutors, color: "#4cd964" },
+  ]
+
+  const carouselImages = useMemo(() => {
+    const mapped =
+      hero.carousel
+        ?.map((item) => {
+          if (!item?.image || typeof item.image === "string") return null
+          const imageUrl = item.image.url
+          if (!imageUrl) return null
+          return {
+            src: imageUrl,
+            alt: item.alt || item.image.alt || "Hero image",
+          }
+        })
+        .filter((img): img is { src: string; alt: string } => Boolean(img)) ?? []
+
+    if (mapped.length > 0) {
+      return mapped
+    }
+
+    return [
+      { src: "/f1.jpeg", alt: "Tutor session 1" },
+      { src: "/f2.jpeg", alt: "Tutor session 2" },
+      { src: "/f3.jpeg", alt: "Tutor session 3" },
+    ]
+  }, [hero])
+
   return (
     <section ref={ref} className="relative overflow-hidden bg-gradient-to-b from-[#e6f7ff] to-white py-16 md:py-24">
       {/* Animated background elements */}
@@ -198,7 +234,7 @@ export default function HeroSection() {
                 variants={textVariants}
                 className="max-w-[600px] text-gray-600 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"
               >
-                Personalized tutoring that helps students excel in their studies while having a great time learning.
+                {hero.description}
               </motion.p>
             </motion.div>
 
@@ -254,16 +290,14 @@ export default function HeroSection() {
                   </motion.div>
                 ))}
               </div>
-              <div className="text-gray-500">Trusted by 1000+ parents</div>
+              <div className="text-gray-500">
+                Trusted by {hero.metrics.parents.toLocaleString()}+ parents
+              </div>
             </motion.div>
 
             {/* Interactive counter */}
             <motion.div custom={5} variants={textVariants} className="flex flex-wrap gap-6 mt-4">
-              {[
-                { label: "Students Helped", value: 5000, color: "#00a8e8" },
-                { label: "Subjects Covered", value: 25, color: "#ffbf00" },
-                { label: "Qualified Tutors", value: 50, color: "#4cd964" },
-              ].map((stat, index) => (
+              {stats.map((stat, index) => (
                 <motion.div key={index} className="flex flex-col" whileHover={{ scale: 1.05 }}>
                   <CounterAnimation
                     targetValue={stat.value}
@@ -284,14 +318,7 @@ export default function HeroSection() {
             whileHover="hover"
           >
             <div className="relative h-[350px] w-[350px] sm:h-[400px] sm:w-[400px] md:h-[500px] md:w-[500px] my-8 sm:my-10 lg:my-0">
-              <PictureCarousel
-                className="h-full w-full"
-                images={[
-                  { src: '/f1.jpeg', alt: 'Tutor session 1' },
-                  { src: '/f2.jpeg', alt: 'Tutor session 2' },
-                  { src: '/f3.jpeg', alt: 'Tutor session 3' },
-                ]}
-              />
+              <PictureCarousel className="h-full w-full" images={carouselImages} />
             </div>
           </motion.div>
         </div>
