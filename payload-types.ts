@@ -90,11 +90,13 @@ export interface Config {
     hero: Hero;
     about: About;
     'why-us': WhyUs;
+    teachers: Teacher;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
     'why-us': WhyUsSelect<false> | WhyUsSelect<true>;
+    teachers: TeachersSelect<false> | TeachersSelect<true>;
   };
   locale: null;
   user: User & {
@@ -440,6 +442,35 @@ export interface WhyUs {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teachers".
+ */
+export interface Teacher {
+  id: string;
+  title: string;
+  description: string;
+  teachers?:
+    | {
+        name: string;
+        title: string;
+        description: string;
+        subjects?:
+          | {
+              label: string;
+              id?: string | null;
+            }[]
+          | null;
+        photo: {
+          image: string | Media;
+          alt: string;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -585,6 +616,37 @@ export interface WhyUsSelect<T extends boolean = true> {
               description?: T;
               expandedContent?: T;
             };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teachers_select".
+ */
+export interface TeachersSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  teachers?:
+    | T
+    | {
+        name?: T;
+        title?: T;
+        description?: T;
+        subjects?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        photo?:
+          | T
+          | {
+              image?: T;
+              alt?: T;
+            };
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

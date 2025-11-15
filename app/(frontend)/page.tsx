@@ -8,9 +8,15 @@ import ContactSection from "@/components/contact-section"
 import { getHeroContent } from "@/lib/hero"
 import { getAboutContent } from "@/lib/about"
 import { getWhyUsContent } from "@/lib/why-us"
+import { getTeachersContent } from "@/lib/teachers"
 
 export default async function Home() {
-  const [hero, about, whyUs] = await Promise.all([getHeroContent(), getAboutContent(), getWhyUsContent()])
+  const [hero, about, whyUs, teachers] = await Promise.all([
+    getHeroContent(),
+    getAboutContent(),
+    getWhyUsContent(),
+    getTeachersContent(),
+  ])
 
   return (
     <div className="min-h-screen bg-white">
@@ -24,7 +30,7 @@ export default async function Home() {
             <WhyUsSection whyUs={whyUs} />
           </div>
         </div>
-        <TeachersSection />
+        <TeachersSection teachers={teachers} />
         <SubjectsSection />
         <ContactSection />
       </main>
