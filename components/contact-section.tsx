@@ -69,6 +69,8 @@ export default function ContactSection({ contact }: ContactSectionProps) {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [selectedPackage, setSelectedPackage] = useState<{ groupName: string; tier: string } | null>(null)
   const [topic, setTopic] = useState<string>("general")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const searchParams = useSearchParams()
 
   const SUBJECT_ICONS: Record<string, any> = {
@@ -113,11 +115,51 @@ export default function ContactSection({ contact }: ContactSectionProps) {
     }
   }, [searchParams])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // In a real application, you would handle the form submission here
-    setFormSubmitted(true)
-    setTimeout(() => setFormSubmitted(false), 3000)
+    if (isSubmitting) return
+
+    const form = e.currentTarget
+    const formData = new FormData(form)
+
+    const payload = {
+      firstName: (formData.get("firstName") as string | null)?.trim() || "",
+      lastName: (formData.get("lastName") as string | null)?.trim() || "",
+      email: (formData.get("email") as string | null)?.trim() || "",
+      phone: (formData.get("phone") as string | null)?.trim() || "",
+      message: (formData.get("message") as string | null)?.trim() || "",
+      topic,
+      subjects: selectedSubjects,
+      selectedPackage,
+    }
+
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to submit form")
+      }
+
+      form.reset()
+      setTopic("general")
+      setSelectedSubjects([])
+      setSelectedPackage(null)
+      setFormSubmitted(true)
+      setTimeout(() => setFormSubmitted(false), 3000)
+    } catch (error) {
+      setSubmitError("We couldn't send your message. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -242,20 +284,20 @@ export default function ContactSection({ contact }: ContactSectionProps) {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="first-name">First name</Label>
-                    <Input id="first-name" placeholder="Enter your first name" required />
+                    <Input id="first-name" name="firstName" placeholder="Enter your first name" required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="last-name">Last name</Label>
-                    <Input id="last-name" placeholder="Enter your last name" required />
+                    <Input id="last-name" name="lastName" placeholder="Enter your last name" required />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="Enter your email" required />
+                  <Input id="email" name="email" type="email" placeholder="Enter your email" required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" type="tel" placeholder="Enter your phone number" />
+                  <Input id="phone" name="phone" type="tel" placeholder="Enter your phone number" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="subject">Subject</Label>
@@ -318,11 +360,16 @@ export default function ContactSection({ contact }: ContactSectionProps) {
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" placeholder="Enter your message" className="min-h-[120px]" required />
+                  <Textarea id="message" name="message" placeholder="Enter your message" className="min-h-[120px]" required />
                 </div>
-                <Button type="submit" className="w-full bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold">
+                {submitError && <p className="text-sm text-red-500">{submitError}</p>}
+                <Button
+                  type="submit"
+                  className="w-full bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold"
+                  disabled={isSubmitting}
+                >
                   <Send className="mr-2 h-4 w-4" />
-                  Send Message
+                  {isSubmitting ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             )}

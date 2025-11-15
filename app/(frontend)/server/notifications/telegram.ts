@@ -1,8 +1,12 @@
 import "server-only";
 
-export async function sendTelegramMessage(text: string): Promise<void> {
+type TelegramOptions = {
+  chatId?: string;
+};
+
+export async function sendTelegramMessage(text: string, options?: TelegramOptions): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID; // can be @channel or numeric id
+  const chatId = options?.chatId || process.env.TELEGRAM_CHAT_ID; // can be @channel or numeric id
 
   if (!token || !chatId) return;
 
