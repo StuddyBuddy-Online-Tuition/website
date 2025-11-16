@@ -296,7 +296,7 @@ export default function TeachersSection({ teachers }: TeachersSectionProps) {
                         src={imageUrl || "/placeholder.svg"}
                         alt={imageAlt}
                         fill
-                        className="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 group-hover:rotate-1"
+                        className="absolute inset-0 z-0 h-full w-full object-cover object-top md:object-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-1"
                       />
                       <div
                         className={`absolute inset-0 z-10 bg-linear-to-br to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none ${
