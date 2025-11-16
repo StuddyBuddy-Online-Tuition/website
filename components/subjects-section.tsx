@@ -36,7 +36,6 @@ const iconComponents = {
 } as const
 
 type IconKey = keyof typeof iconComponents
-const DEFAULT_HIGHLIGHTS = ['One-on-one tutoring', 'Homework help', 'Test preparation']
 type CMSSingleSubject = {
   title: string
   icon: string
@@ -75,10 +74,9 @@ export default function SubjectsSection({ subjects }: SubjectsSectionProps) {
       const entries: CMSSingleSubject[] = Array.isArray(list) ? list : []
       return entries.map((subject) => {
         const IconComponent = iconComponents[(subject.icon as IconKey) || "book"] || BookOpen
-        const highlightList: { text: string; id?: string | null }[] =
-          Array.isArray(subject.highlights) && subject.highlights.length > 0
-            ? (subject.highlights as { text: string; id?: string | null }[])
-            : DEFAULT_HIGHLIGHTS.map((text) => ({ text }))
+        const highlightList: { text: string; id?: string | null }[] = Array.isArray(subject.highlights)
+          ? (subject.highlights as { text: string; id?: string | null }[])
+          : []
         return {
           title: subject.title,
           description: subject.shortDescription,
