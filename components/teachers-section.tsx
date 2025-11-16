@@ -199,6 +199,7 @@ export default function TeachersSection({ teachers }: TeachersSectionProps) {
       const rect = event.currentTarget.getBoundingClientRect()
       setModalTriggerRect(rect)
       setSelectedTeacher(teacher)
+      console.log(teacher.description)
     },
     [],
   )
@@ -539,7 +540,7 @@ export default function TeachersSection({ teachers }: TeachersSectionProps) {
                         </div>
                       </div>
                       {selectedTeacher.description && (
-                        <p className="mt-3 text-sm text-[#516276] md:text-base">{selectedTeacher.description}</p>
+                        <p className="mt-3 text-sm text-[#516276] md:text-base whitespace-pre-line">{selectedTeacher.description}</p>
                       )}
                       <div className="mt-4 flex flex-wrap gap-2">
                         {((selectedTeacher.subjects ?? []) as SubjectEntry[]).map((subject, idx) => (
