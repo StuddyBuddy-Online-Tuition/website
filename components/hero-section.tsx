@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef, useMemo } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { motion, useAnimation, useInView } from "framer-motion"
 import { Star, ArrowRight, Sparkles, BookOpen, Brain, Calculator, Atom, Languages } from "lucide-react"
@@ -17,7 +18,7 @@ type HeroSectionProps = {
 export default function HeroSection({ hero }: HeroSectionProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [hoverButton, setHoverButton] = useState(false)
-  const confettiRef = useRef<HTMLButtonElement>(null)
+  const confettiRef = useRef<HTMLAnchorElement>(null)
   const controls = useAnimation()
   const ref = useRef(null)
   const inView = useInView(ref)
@@ -240,40 +241,44 @@ export default function HeroSection({ hero }: HeroSectionProps) {
 
             <motion.div custom={3} variants={textVariants} className="flex flex-col gap-2 min-[400px]:flex-row">
               <Button
-                ref={confettiRef}
+                asChild
                 className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold h-12 px-6 relative overflow-hidden group"
-                onClick={handleConfetti}
                 onMouseEnter={() => setHoverButton(true)}
                 onMouseLeave={() => setHoverButton(false)}
               >
-                <motion.span
-                  className="absolute inset-0 bg-gradient-to-r from-[#ffbf00] to-[#ffa500] opacity-0 group-hover:opacity-100"
-                  initial={{ x: "-100%" }}
-                  animate={hoverButton ? { x: "0%" } : { x: "-100%" }}
-                  transition={{ duration: 0.3 }}
-                />
-                <motion.span className="relative flex items-center">
-                  Get Started
+                <Link href="/register" ref={confettiRef} onClick={handleConfetti}>
                   <motion.span
-                    animate={{ x: hoverButton ? [0, 5, 0] : 0 }}
-                    transition={{ duration: 0.5, repeat: hoverButton ? Number.POSITIVE_INFINITY : 0 }}
-                  >
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    className="absolute inset-0 bg-gradient-to-r from-[#ffbf00] to-[#ffa500] opacity-0 group-hover:opacity-100"
+                    initial={{ x: "-100%" }}
+                    animate={hoverButton ? { x: "0%" } : { x: "-100%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <motion.span className="relative flex items-center">
+                    Get Started
+                    <motion.span
+                      animate={{ x: hoverButton ? [0, 5, 0] : 0 }}
+                      transition={{ duration: 0.5, repeat: hoverButton ? Number.POSITIVE_INFINITY : 0 }}
+                    >
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </motion.span>
                   </motion.span>
-                </motion.span>
+                </Link>
               </Button>
 
               <Button
                 variant="outline"
+                asChild
                 className="border-[#00a8e8] text-[#00a8e8] hover:bg-[#e6f7ff] h-12 px-6 relative overflow-hidden group"
               >
-                <motion.span
-                  className="absolute inset-0 bg-[#e6f7ff] opacity-0 group-hover:opacity-100"
-                  initial={{ y: "100%" }}
-                  whileHover={{ y: "0%" }}
-                  transition={{ duration: 0.3 }}
-                />
-                <span className="relative">Learn More</span>
+                <Link href="/#about">
+                  <motion.span
+                    className="absolute inset-0 bg-[#e6f7ff] opacity-0 group-hover:opacity-100"
+                    initial={{ y: "100%" }}
+                    whileHover={{ y: "0%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <span className="relative">Learn More</span>
+                </Link>
               </Button>
             </motion.div>
 
