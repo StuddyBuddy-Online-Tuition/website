@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import HeroSection from "@/components/hero-section"
 import AboutSection from "@/components/about-section"
 import WhyUsSection from "@/components/why-us-section"
@@ -36,7 +37,9 @@ export default async function Home() {
         </div>
         <TeachersSection teachers={teachers} />
         <SubjectsSection subjects={subjects} />
-        <ContactSection contact={contact} />
+        <Suspense fallback={null}>
+          <ContactSection contact={contact} />
+        </Suspense>
       </main>
     </div>
   )
