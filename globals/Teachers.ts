@@ -50,7 +50,7 @@ export const Teachers: GlobalConfig = {
           name: 'description',
           type: 'textarea',
           required: true,
-          maxLength: 220,
+          maxLength: 1000,
         },
         {
           name: 'subjects',
