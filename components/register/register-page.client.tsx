@@ -37,7 +37,7 @@ type RegisterPageClientProps = {
   subjects: SubjectItem[]
 }
 
-const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "F1", "F2", "F3", "F4", "F5", "CP"]
+const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "S6", "F1", "F2", "F3", "F4", "F5", "CP"]
 
 // Icon mapping from CMS icon strings to Lucide icons
 const getIconComponent = (iconName: string) => {
