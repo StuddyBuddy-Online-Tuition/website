@@ -83,8 +83,15 @@ export default function Navbar() {
             >
               Contact
             </Link>
+            <Link
+              href="/timetable"
+              className="text-[#0e2e47] hover:text-[#00a8e8] font-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Timetable
+            </Link>
             <Button asChild className="bg-[#ffbf00] hover:bg-[#ffa500] text-[#0e2e47] font-bold w-full">
-              <Link href="/register">Book a Session</Link>
+              <Link href="/register">Register Now!</Link>
             </Button>
           </nav>
         </div>
