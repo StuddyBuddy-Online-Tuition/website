@@ -16,6 +16,8 @@ import { Teachers } from './globals/Teachers'
 import { Subjects } from './globals/Subjects'
 import { Contact } from './globals/Contact'
 import { Footer } from './globals/Footer'
+import { Register } from './globals/Register'
+import { Timetable } from './globals/Timetable'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -28,7 +30,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media],
-  globals: [Hero, About, WhyUs, Teachers, Subjects, Contact, Footer],
+  globals: [Hero, About, WhyUs, Teachers, Subjects, Contact, Footer, Register, Timetable],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
