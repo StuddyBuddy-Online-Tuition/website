@@ -249,7 +249,7 @@ export const Subjects: GlobalConfig = {
         {
           name: 'name',
           label: 'Package Name',
-          type: 'text',
+          type: 'textarea',
           required: true,
           maxLength: 80,
         },
