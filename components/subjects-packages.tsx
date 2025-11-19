@@ -20,7 +20,7 @@ type StudyPackage = NonNullable<SubjectsContent["packages"]>[number]
 type SubjectsPackagesProps = {
   packages: StudyPackage[]
   selectedPackageId: string | null
-  setSelectedPackageId: (id: string) => void
+  setSelectedPackageId: (id: string | null) => void
   setSelectedSubjects: (subjects: string[]) => void
   isInView: boolean
 }
@@ -124,7 +124,7 @@ export function SubjectsPackages(props: SubjectsPackagesProps) {
               ) : null}
 
               <div>
-                <div className="text-sm text-[#00a8e8]">{pkg.name}</div>
+                <div className="text-sm text-[#00a8e8] whitespace-pre-line">{pkg.name}</div>
                 <h3 className="text-xl font-bold text-[#0e2e47]">{pkg.grade}</h3>
               </div>
 
