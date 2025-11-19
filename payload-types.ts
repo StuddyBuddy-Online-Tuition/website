@@ -95,6 +95,7 @@ export interface Config {
     contact: Contact;
     footer: Footer;
     register: Register;
+    timetable: Timetable;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -105,6 +106,7 @@ export interface Config {
     contact: ContactSelect<false> | ContactSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     register: RegisterSelect<false> | RegisterSelect<true>;
+    timetable: TimetableSelect<false> | TimetableSelect<true>;
   };
   locale: null;
   user: User & {
@@ -612,6 +614,24 @@ export interface Register {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "timetable".
+ */
+export interface Timetable {
+  id: string;
+  title: string;
+  description: string;
+  availableGrades?:
+    | {
+        value: 'S1' | 'S2' | 'S3' | 'S4' | 'S5' | 'S6' | 'F1' | 'F2' | 'F3' | 'F4' | 'F5';
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -934,6 +954,24 @@ export interface RegisterSelect<T extends boolean = true> {
     | {
         title?: T;
         icon?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "timetable_select".
+ */
+export interface TimetableSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  availableGrades?:
+    | T
+    | {
+        value?: T;
+        label?: T;
         id?: T;
       };
   updatedAt?: T;

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { STANDARD_OPTIONS } from "@/lib/subject-constants"
 import type { Subject } from "@/types/subject"
 import type { Timeslot } from "@/types/timeslot"
 import { cn } from "@/lib/utils"
@@ -10,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Check } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const
 
@@ -97,27 +95,61 @@ function getBaseLabelFromSubjectField(subjectField: string): string {
   return subjectField
 }
 
-type Props = { initialSubjects: Subject[]; initialTimeslots: Timeslot[] }
+type GradeOption = {
+  value: string
+  label: string
+}
 
-export default function MasterTimetable({ initialSubjects, initialTimeslots }: Props) {
+type Props = {
+  initialSubjects: Subject[]
+  initialTimeslots: Timeslot[]
+  title: string
+  description: string
+  availableGrades: GradeOption[]
+}
+
+export default function MasterTimetable({ initialSubjects, initialTimeslots, title, description, availableGrades }: Props) {
   const [selectedStandards, setSelectedStandards] = useState<string[]>([])
-  const [subjectType, setSubjectType] = useState<"ALL" | "DLP" | "KSSM">("ALL")
   const STORAGE_KEY = "masterTimetable:selectedStandards"
 
-  // Load saved selection on mount
+  // Build grade values set from CMS
+  const gradeValues = useMemo(() => {
+    return new Set(availableGrades.map((g) => g.value))
+  }, [availableGrades])
+
+  // Get default initial selection (F1-F5)
+  const defaultInitialSelection = useMemo(() => {
+    const fGrades = availableGrades.filter((g) => g.value.startsWith("F")).map((g) => g.value)
+    return fGrades.slice(0, 5) // F1-F5
+  }, [availableGrades])
+
+  // Load saved selection on mount, or use default F1-F5 if no saved selection
   useEffect(() => {
     try {
       const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null
-      if (!raw) return
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return
-      const validSet = new Set(STANDARD_OPTIONS)
-      const filtered = parsed.filter((s) => typeof s === "string" && validSet.has(s)).slice(0, 5)
-      if (filtered.length > 0) setSelectedStandards(filtered)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          const filtered = parsed
+            .filter((s) => typeof s === "string" && gradeValues.has(s))
+            .slice(0, 5)
+          if (filtered.length > 0) {
+            setSelectedStandards(filtered)
+            return
+          }
+        }
+      }
+      // If no valid saved selection, use default F1-F5
+      if (defaultInitialSelection.length > 0) {
+        setSelectedStandards(defaultInitialSelection)
+      }
     } catch {
-      // ignore
+      // If error, use default F1-F5
+      if (defaultInitialSelection.length > 0) {
+        setSelectedStandards(defaultInitialSelection)
+      }
     }
-  }, [])
+  }, [gradeValues, defaultInitialSelection])
 
   // Persist selection when it changes
   useEffect(() => {
@@ -166,12 +198,8 @@ export default function MasterTimetable({ initialSubjects, initialTimeslots }: P
       for (const day of DAYS) {
         result[standard][day] = { 0: [], 1: [] }
       }
-      // Filter normal timeslots for subjects in this standard, respecting subjectType filter
-      const subjectsForStandard = (subjectsByStandard[standard] ?? []).filter((s) => {
-        if (subjectType === "ALL") return true
-        const hasDlp = /\bDLP\b/i.test(s.name)
-        return subjectType === "DLP" ? hasDlp : !hasDlp
-      }).filter((s) => s.type === "Classroom")
+      // Filter normal timeslots for subjects in this standard (show all subjects, no DLP/KSSM filtering)
+      const subjectsForStandard = (subjectsByStandard[standard] ?? []).filter((s) => s.type === "Classroom")
       const subjectCodes = new Set(subjectsForStandard.map((s) => s.code))
       const normalSlots = initialTimeslots.filter(
         (t) => subjectCodes.has(t.subjectCode) && t.studentId === null,
@@ -186,7 +214,7 @@ export default function MasterTimetable({ initialSubjects, initialTimeslots }: P
       }
     }
     return result
-  }, [selectedStandards, subjectsByStandard, subjectByCode, subjectType, initialTimeslots])
+  }, [selectedStandards, subjectsByStandard, subjectByCode, initialTimeslots])
 
   
   // Build legend for only the subjects currently displayed in the grid
@@ -223,28 +251,12 @@ export default function MasterTimetable({ initialSubjects, initialTimeslots }: P
     <div className="space-y-8">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
-          <h2 className="text-3xl font-semibold text-[#0e2e47] md:text-[34px]">Master Timetable</h2>
+          <h2 className="text-3xl font-semibold text-[#0e2e47] md:text-[34px]">{title}</h2>
           <p className="text-sm text-muted-foreground md:max-w-xl">
-            Select up to 5 standards/forms to display.
+            {description}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Select value={subjectType} onValueChange={(v) => setSubjectType(v as typeof subjectType)}>
-            <SelectTrigger className="w-[190px] rounded-full border border-[#00a8e8]/20 bg-white px-4 py-2 text-sm font-medium text-[#0e2e47] shadow-sm transition-all hover:border-[#00a8e8]/40 hover:shadow-md focus:border-[#00a8e8] focus:ring-2 focus:ring-[#00a8e8]/20">
-              <SelectValue placeholder="Subject Type" />
-            </SelectTrigger>
-            <SelectContent align="end" className="rounded-xl border border-[#00a8e8]/10 bg-white shadow-xl">
-              <SelectItem value="ALL" className="rounded-lg px-3 py-2 text-sm font-medium text-[#0e2e47] focus:bg-[#e6f7ff] focus:text-[#00a8e8]">
-                All
-              </SelectItem>
-              <SelectItem value="DLP" className="rounded-lg px-3 py-2 text-sm font-medium text-[#0e2e47] focus:bg-[#e6f7ff] focus:text-[#00a8e8]">
-                DLP
-              </SelectItem>
-              <SelectItem value="KSSM" className="rounded-lg px-3 py-2 text-sm font-medium text-[#0e2e47] focus:bg-[#e6f7ff] focus:text-[#00a8e8]">
-                KSSM
-              </SelectItem>
-            </SelectContent>
-          </Select>
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="justify-start rounded-full border-[#00a8e8]/20 bg-white px-4 py-2 text-sm font-semibold text-[#0e2e47] shadow-sm transition-all hover:border-[#00a8e8]/40 hover:text-[#00a8e8] hover:shadow-md">
@@ -258,12 +270,12 @@ export default function MasterTimetable({ initialSubjects, initialTimeslots }: P
             </PopoverTrigger>
             <PopoverContent className="w-[260px] rounded-2xl border border-[#00a8e8]/15 bg-white p-3 shadow-xl" align="end">
               <div className="max-h-64 space-y-1 overflow-auto">
-                {STANDARD_OPTIONS.map((s) => {
-                  const isSelected = selectedStandards.includes(s)
+                {availableGrades.map((grade) => {
+                  const isSelected = selectedStandards.includes(grade.value)
                   const disabled = !isSelected && selectedStandards.length >= 5
                   return (
                     <Button
-                      key={s}
+                      key={grade.value}
                       variant="ghost"
                       className={cn(
                         "w-full justify-between rounded-xl border border-transparent px-3 py-2 text-sm font-medium transition-all",
@@ -272,10 +284,10 @@ export default function MasterTimetable({ initialSubjects, initialTimeslots }: P
                           : "bg-white text-[#0e2e47] hover:bg-[#f4f8fb]",
                         disabled && "opacity-50",
                       )}
-                      onClick={() => handleToggleStandard(s)}
+                      onClick={() => handleToggleStandard(grade.value)}
                       disabled={disabled}
                     >
-                      <span>{s}</span>
+                      <span>{grade.value}</span>
                       <div
                         className={cn(
                           "flex h-5 w-5 items-center justify-center rounded-full border border-[#00a8e8]/40 text-white transition-colors",
