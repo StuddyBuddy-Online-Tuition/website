@@ -23,43 +23,37 @@ type PackageItem = {
   popular?: boolean
 }
 
+type SubjectItem = {
+  title: string
+  icon: string
+}
+
 type RegisterPageClientProps = {
   packages: PackageItem[]
   recaptchaSiteKey: string | null
+  title: string
+  description: string
+  gradeLabel: string
+  subjects: SubjectItem[]
 }
 
 const GRADE_OPTIONS = ["S1", "S2", "S3", "S4", "S5", "F1", "F2", "F3", "F4", "F5", "CP"]
-const SUBJECT_OPTIONS = [
-  "English",
-  "Bahasa Malaysia",
-  "Mathematics",
-  "Addmath",
-  "Science",
-  "Sejarah",
-  "Kimia",
-  "Biology",
-  "Physics",
-  "Prinsip Akaun",
-  "Ekonomi",
-  "Perniagaan",
-]
-const SUBJECT_ICONS: Record<string, any> = {
-  English: BookOpen,
-  "Bahasa Malaysia": Languages,
-  Biology: Dna,
-  Biologi: Dna,
-  Physics: Atom,
-  Fizik: Atom,
-  Geography: Globe,
-  Kimia: FlaskConical,
-  Mathematics: Calculator,
-  Addmath: Calculator,
-  Science: FlaskConical,
-  Sains: FlaskConical,
-  Sejarah: Globe,
-  "Prinsip Akaun": Calculator,
-  Ekonomi: Calculator,
-  Perniagaan: Globe,
+
+// Icon mapping from CMS icon strings to Lucide icons
+const getIconComponent = (iconName: string) => {
+  const iconMap: Record<string, any> = {
+    book: BookOpen,
+    languages: Languages,
+    calculator: Calculator,
+    atom: Atom,
+    globe: Globe,
+    code: BookOpen, // fallback
+    music: BookOpen, // fallback
+    palette: BookOpen, // fallback
+    flask: FlaskConical,
+    dna: Dna,
+  }
+  return iconMap[iconName] || BookOpen
 }
 
 function isPromoActive(pkg: any, now: Date = new Date()) {
@@ -81,7 +75,7 @@ function getPackagePricing(pkg: any) {
   }
 }
 
-export default function RegisterPageClient({ packages, recaptchaSiteKey }: RegisterPageClientProps) {
+export default function RegisterPageClient({ packages, recaptchaSiteKey, title, description, gradeLabel, subjects }: RegisterPageClientProps) {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [subjectsOpen, setSubjectsOpen] = useState(false)
@@ -93,6 +87,16 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey }: Regis
   // Store created student returned by API for WhatsApp deep link.
   const [createdStudent, setCreatedStudent] = useState<any | null>(null)
   const recaptchaAction = "register_submit"
+
+  // Build SUBJECT_OPTIONS and SUBJECT_ICONS from CMS subjects
+  const { subjectOptions, subjectIcons } = useMemo(() => {
+    const options = subjects.map((s) => s.title)
+    const icons: Record<string, any> = {}
+    subjects.forEach((s) => {
+      icons[s.title] = getIconComponent(s.icon)
+    })
+    return { subjectOptions: options, subjectIcons: icons }
+  }, [subjects])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -239,10 +243,10 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey }: Regis
                 <BookOpen className="h-4 w-4 text-[#ffbf00]" /> Parent Registration
               </div>
               <h1 className="mt-3 text-3xl font-bold tracking-tighter text-[#0e2e47] sm:text-4xl md:text-5xl">
-                Enroll Your Child with StudyBuddy
+                {title}
               </h1>
               <p className="mx-auto mt-3 max-w-[700px] text-gray-600 md:text-lg">
-                Share a few details and we’ll match your child with the perfect tutor.
+                {description}
               </p>
             </motion.div>
           </div>
@@ -298,7 +302,7 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey }: Regis
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className={fieldCls}>
-                    <label className={labelCls}>Choose Grade (For Year 2026)</label>
+                    <label className={labelCls}>{gradeLabel}</label>
                     <select name="grade" required className="h-10 w-full rounded-md border bg-white px-3 text-sm">
                       <option value="">Grade</option>
                       {GRADE_OPTIONS.map((g) => (
@@ -355,7 +359,7 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey }: Regis
                         <span className="text-sm text-gray-500">No subjects selected</span>
                       ) : (
                         selectedSubjects.map((s) => {
-                          const Icon = SUBJECT_ICONS[s] || BookOpen
+                          const Icon = subjectIcons[s] || BookOpen
                           return (
                             <span key={s} className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs text-[#0e2e47] bg-white">
                               <Icon className="h-3.5 w-3.5" />
@@ -523,12 +527,12 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey }: Regis
     <SubjectsModal
       open={subjectsOpen}
       onOpenChange={setSubjectsOpen}
-      options={SUBJECT_OPTIONS}
+      options={subjectOptions}
       selected={selectedSubjects}
       onToggle={toggleSubject}
       onClear={() => setSelectedSubjects([])}
       onDone={() => setSubjectsOpen(false)}
-      icons={SUBJECT_ICONS}
+      icons={subjectIcons}
     />
 
     <PackagesModal
@@ -545,5 +549,6 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey }: Regis
     </>
   )
 }
+
 
 

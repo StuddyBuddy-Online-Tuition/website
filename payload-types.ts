@@ -94,6 +94,7 @@ export interface Config {
     subjects: Subject;
     contact: Contact;
     footer: Footer;
+    register: Register;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -103,6 +104,7 @@ export interface Config {
     subjects: SubjectsSelect<false> | SubjectsSelect<true>;
     contact: ContactSelect<false> | ContactSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    register: RegisterSelect<false> | RegisterSelect<true>;
   };
   locale: null;
   user: User & {
@@ -591,6 +593,25 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "register".
+ */
+export interface Register {
+  id: string;
+  title: string;
+  description: string;
+  gradeLabel: string;
+  subjects?:
+    | {
+        title: string;
+        icon: 'book' | 'languages' | 'calculator' | 'atom' | 'globe' | 'code' | 'music' | 'palette' | 'flask' | 'dna';
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -895,6 +916,25 @@ export interface FooterSelect<T extends boolean = true> {
         facebookUrl?: T;
         email?: T;
         phone?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "register_select".
+ */
+export interface RegisterSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  gradeLabel?: T;
+  subjects?:
+    | T
+    | {
+        title?: T;
+        icon?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
