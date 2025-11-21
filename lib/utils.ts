@@ -35,6 +35,33 @@ export function generateTicketId(prefix = "TKT", length = 8): string {
   return `${prefix}-${(random() + random()).slice(0, length)}`
 }
 
+/**
+ * Normalizes Malaysian phone numbers to pure digits only.
+ * Handles formats like: 012-345 6789, +60123456789, 60123456789, etc.
+ * Returns digits only (e.g., "0123456789", "60123456789", or "01234567890" for 11-digit numbers).
+ * Supports both 10-digit and 11-digit Malaysian phone numbers.
+ * Retains country code "60" if user enters it.
+ */
+export function normalizeMalaysianPhone(phone: string | null | undefined): string | null {
+  if (!phone) return null
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, "")
+  if (!digits) return null
+  // If starts with 60 (country code), retain it as is
+  if (digits.startsWith("60")) {
+    return digits
+  }
+  // If already starts with 0, return as is (handles both 10 and 11 digit numbers)
+  if (digits.startsWith("0")) {
+    return digits
+  }
+  // If no leading 0 or 60 and reasonable length (9-11 digits), assume missing leading 0
+  if (digits.length >= 9 && digits.length <= 11) {
+    return "0" + digits
+  }
+  return digits
+}
+
 // Build a WhatsApp deep link for parents to confirm registration.
 // Cleans the phone to digits only; returns empty string if no digits found.
 // Message includes parent name, student name and ticket number.
