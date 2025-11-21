@@ -13,8 +13,8 @@ import { Check } from "lucide-react"
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const
 
 const TIME_WINDOWS = [
-  { start: "20:15", end: "21:15", label: "20:15–21:15" },
-  { start: "21:20", end: "22:20", label: "21:20–22:20" },
+  { start: "20:15", end: "21:15", label: "20:00–21:00" },
+  { start: "21:20", end: "22:20", label: "21:05–22:05" },
 ] as const
 
 type TimeWindowIndex = 0 | 1
