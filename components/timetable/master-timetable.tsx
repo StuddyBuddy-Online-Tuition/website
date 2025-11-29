@@ -110,17 +110,28 @@ type GradeOption = {
   label: string
 }
 
+type HeadingLevel = "h1" | "h2" | "h3" | "h4"
+
 type Props = {
   initialSubjects: Subject[]
   initialTimeslots: Timeslot[]
   title: string
   description: string
   availableGrades: GradeOption[]
+  headingLevel?: HeadingLevel
 }
 
-export default function MasterTimetable({ initialSubjects, initialTimeslots, title, description, availableGrades }: Props) {
+export default function MasterTimetable({
+  initialSubjects,
+  initialTimeslots,
+  title,
+  description,
+  availableGrades,
+  headingLevel = "h2",
+}: Props) {
   const [selectedStandards, setSelectedStandards] = useState<string[]>([])
   const STORAGE_KEY = "masterTimetable:selectedStandards"
+  const HeadingTag = headingLevel
 
   // Build grade values set from CMS
   const gradeValues = useMemo(() => {
@@ -261,7 +272,7 @@ export default function MasterTimetable({ initialSubjects, initialTimeslots, tit
     <div className="space-y-8">
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
-          <h2 className="text-3xl font-semibold text-[#0e2e47] md:text-[34px]">{title}</h2>
+          <HeadingTag className="text-3xl font-semibold text-[#0e2e47] md:text-[34px]">{title}</HeadingTag>
           <p className="text-sm text-muted-foreground md:max-w-xl">
             {description}
           </p>
