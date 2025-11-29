@@ -10,7 +10,7 @@ import { PackagesModal } from "@/components/register/packages-modal"
 import { Check, BookOpen, User, Phone, Mail, X, Languages, Dna, Atom, Globe, Calculator, FlaskConical } from "lucide-react"
  
 import Script from "next/script"
-import { toWhatsAppHref } from "@/lib/utils"
+import { toWhatsAppHref, normalizeMalaysianPhone } from "@/lib/utils"
 
 type PackageItem = {
   id: string
@@ -114,11 +114,11 @@ export default function RegisterPageClient({ packages, recaptchaSiteKey, title, 
       const body = {
         parentname: fd.get("parentname") as string | null,
         email: fd.get("email") as string | null,
-        parentphone: fd.get("parentphone") as string | null,
+        parentphone: normalizeMalaysianPhone(fd.get("parentphone") as string | null),
         full_name: fd.get("full_name") as string | null,
         ic_number: fd.get("ic_number") as string | null,
         grade: fd.get("grade") as string | null,
-        studentphone: fd.get("studentphone") as string | null,
+        studentphone: normalizeMalaysianPhone(fd.get("studentphone") as string | null),
         school: fd.get("school") as string | null,
         name: fd.get("name") as string | null,
         subjects: selectedSubjects,
